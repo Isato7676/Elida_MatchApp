@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mi Equipo Infantil</title>
+  <title>Élida Infantil - Resultados</title>
   <style>
     :root {
       --primary: #0056b3;
@@ -26,6 +26,18 @@
       text-align: center;
       margin-bottom: 20px;
     }
+    .btn-refresh {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 8px;
+      width: 100%;
+      font-weight: bold;
+      font-size: 1em;
+      margin-bottom: 16px;
+      cursor: pointer;
+    }
     .match-card {
       background: var(--card-bg);
       border-radius: 12px;
@@ -38,105 +50,147 @@
       justify-content: space-between;
       align-items: center;
       font-weight: bold;
-      font-size: 1.05em;
+      font-size: 1em;
     }
     .score {
       background: #e9ecef;
       padding: 6px 12px;
       border-radius: 6px;
       color: var(--primary);
+      font-weight: bold;
     }
     .meta {
       font-size: 0.85em;
       color: #6c757d;
       margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
     }
     .highlight {
-      border-left: 5px solid var(--primary);
+      border-left: 5px solid #28a745;
+      background: #f0fff4;
     }
-    .btn-refresh {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 10px 16px;
+    #debug-log {
+      background: #1e1e1e;
+      color: #00ff66;
+      font-family: monospace;
+      padding: 12px;
       border-radius: 8px;
-      width: 100%;
-      font-weight: bold;
-      margin-bottom: 16px;
+      font-size: 0.75em;
+      margin-top: 20px;
+      max-height: 200px;
+      overflow-y: auto;
     }
   </style>
 </head>
 <body>
 
   <header>
-    <h2 style="margin:0;">Jornada Infantil RFFM</h2>
+    <h2 style="margin:0;">CD Élida Olimpia - Infantil</h2>
   </header>
 
   <button class="btn-refresh" onclick="cargarDatos()">🔄 Cargar / Actualizar Resultados</button>
 
   <div id="contenedor-partidos">
-    <p style="text-align:center; color:#777;">Pulsa el botón para cargar la jornada actual...</p>
+    <p style="text-align:center; color:#777;">Pulsa el botón para obtener la jornada actual.</p>
   </div>
 
+  <div id="debug-log">Log de conexión listo...</div>
+
   <script>
-    // Parámetros de la RFFM
-    const urlRFFM = 'https://www.rffm.es/competicion/resultados-y-jornadas?temporada=22&competicion=26737819&grupo=26737824&jornada=1&tipojuego=1';
+    const targetUrl = 'https://www.rffm.es/competicion/resultados-y-jornadas?temporada=22&competicion=26737819&grupo=26737824&jornada=1&tipojuego=1';
     
-    // Usamos un proxy para saltar la restricción CORS
-    const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(urlRFFM);
+    // Usamos el servicio AllOrigins que devuelve el HTML codificado sin problemas de CORS
+    const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(targetUrl);
+
+    function logMessage(msg, isError = false) {
+      const logDiv = document.getElementById('debug-log');
+      const time = new Date().toLocaleTimeString();
+      const color = isError ? '#ff5555' : '#00ff66';
+      logDiv.innerHTML += `<div style="color:${color}">[${time}] ${msg}</div>`;
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
 
     async function cargarDatos() {
       const contenedor = document.getElementById('contenedor-partidos');
-      contenedor.innerHTML = '<p style="text-align:center;">Cargando partidos...</p>';
+      document.getElementById('debug-log').innerHTML = '';
+      contenedor.innerHTML = '<p style="text-align:center;">Cargando datos desde RFFM...</p>';
+
+      logMessage('Iniciando conexión...');
 
       try {
         const response = await fetch(proxyUrl);
+        if (!response.ok) throw new Error('Respuesta del servidor no válida');
+
         const data = await response.json();
-        
-        // Creamos un parser HTML
+        logMessage('Datos recibidos del Proxy correctamente.');
+
+        // Extraer los datos dinámicos embedded de Next.js
         const parser = new DOMParser();
         const doc = parser.parseFromString(data.contents, 'text/html');
+        const scriptNext = doc.getElementById('__NEXT_DATA__');
 
-        // Seleccionar los bloques o filas de partidos (según la estructura devuelta por RFFM)
-        const partidos = doc.querySelectorAll('.tabla-resultados tbody tr');
+        if (!scriptNext) {
+          throw new Error('No se encontró la estructura __NEXT_DATA__ en la RFFM');
+        }
 
-        if (!partidos || partidos.length === 0) {
-          contenedor.innerHTML = '<p style="text-align:center;">No se encontraron partidos o la web requiere renderizado JS activo.</p>';
+        const jsonData = JSON.parse(scriptNext.textContent);
+        logMessage('JSON de Next.js extraído correctamente.');
+
+        // Navegar dentro de la estructura de datos de Next.js
+        const props = jsonData.props?.pageProps;
+        logMessage('Campos de página analizados. Procesando jornadas...');
+
+        // Intentamos obtener la lista de partidos desde props
+        let partidos = [];
+        if (props?.partidos) {
+          partidos = props.partidos;
+        } else if (props?.jornadaActual?.partidos) {
+          partidos = props.jornadaActual.partidos;
+        } else {
+          // Inspección fallback para encontrar cualquier array de partidos en las props
+          const keys = Object.keys(props || {});
+          logMessage('Claves disponibles en el objeto: ' + keys.join(', '));
+        }
+
+        if (partidos.length === 0) {
+          contenedor.innerHTML = '<p style="text-align:center;">Respuesta recibida correctamente. Revisa el cuadro de log inferior para ver las claves disponibles en el JSON de RFFM.</p>';
           return;
         }
 
-        contenedor.innerHTML = ''; // Limpiar mensaje de carga
+        contenedor.innerHTML = '';
+        partidos.forEach(p => {
+          const local = p.equipoLocal || p.local || 'Local';
+          const visitante = p.equipoVisitante || p.visitante || 'Visitante';
+          const gLocal = p.golesLocal ?? '-';
+          const gVisitante = p.golesVisitante ?? '-';
+          const fecha = p.fecha || 'Fecha por confirmar';
 
-        partidos.forEach(partido => {
-          // Extraer nombres de equipos y resultado
-          const local = partido.querySelector('.local')?.innerText.trim() || 'Local';
-          const visitante = partido.querySelector('.visitante')?.innerText.trim() || 'Visitante';
-          const resultado = partido.querySelector('.resultado')?.innerText.trim() || 'vs';
-          const fechaHora = partido.querySelector('.fecha')?.innerText.trim() || 'Por determinar';
-
-          // Dibujar tarjeta sencilla
           const card = document.createElement('div');
           card.className = 'match-card';
-          
-          // Marca en azul si es tu equipo (puedes cambiar 'MiEquipo' por el nombre real)
-          if (local.includes("NombreDeTuEquipo") || visitante.includes("NombreDeTuEquipo")) {
+
+          // Resaltar si juega el Élida
+          if (local.toLowerCase().includes('elida') || visitante.toLowerCase().includes('elida') || 
+              local.toLowerCase().includesélida') || visitante.toLowerCase().includes('élida')) {
             card.classList.add('highlight');
           }
 
           card.innerHTML = `
             <div class="teams">
               <span>${local}</span>
-              <span class="score">${resultado}</span>
+              <span class="score">${gLocal} - ${gVisitante}</span>
               <span>${visitante}</span>
             </div>
-            <div class="meta">📅 ${fechaHora}</div>
+            <div class="meta">
+              <span>📅 ${fecha}</span>
+            </div>
           `;
           contenedor.appendChild(card);
         });
 
-      } catch (error) {
-        console.error(error);
-        contenedor.innerHTML = '<p style="text-align:center; color:red;">Error al cargar la información. Inténtalo de nuevo.</p>';
+      } catch (err) {
+        logMessage('ERROR: ' + err.message, true);
+        contenedor.innerHTML = `<p style="text-align:center; color:red;">Ocurrió un error: ${err.message}</p>`;
       }
     }
   </script>
