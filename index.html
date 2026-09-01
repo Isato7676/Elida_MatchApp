@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Equipo Infantil</title>
+  <style>
+    :root {
+      --primary: #0056b3;
+      --bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --text: #333333;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 16px;
+    }
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 16px;
+      border-radius: 12px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .match-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .teams {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      font-size: 1.05em;
+    }
+    .score {
+      background: #e9ecef;
+      padding: 6px 12px;
+      border-radius: 6px;
+      color: var(--primary);
+    }
+    .meta {
+      font-size: 0.85em;
+      color: #6c757d;
+      margin-top: 8px;
+    }
+    .highlight {
+      border-left: 5px solid var(--primary);
+    }
+    .btn-refresh {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      width: 100%;
+      font-weight: bold;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h2 style="margin:0;">Jornada Infantil RFFM</h2>
+  </header>
+
+  <button class="btn-refresh" onclick="cargarDatos()">🔄 Cargar / Actualizar Resultados</button>
+
+  <div id="contenedor-partidos">
+    <p style="text-align:center; color:#777;">Pulsa el botón para cargar la jornada actual...</p>
+  </div>
+
+  <script>
+    // Parámetros de la RFFM
+    const urlRFFM = 'https://www.rffm.es/competicion/resultados-y-jornadas?temporada=22&competicion=26737819&grupo=26737824&jornada=1&tipojuego=1';
+    
+    // Usamos un proxy para saltar la restricción CORS
+    const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(urlRFFM);
+
+    async function cargarDatos() {
+      const contenedor = document.getElementById('contenedor-partidos');
+      contenedor.innerHTML = '<p style="text-align:center;">Cargando partidos...</p>';
+
+      try {
+        const response = await fetch(proxyUrl);
+        const data = await response.json();
+        
+        // Creamos un parser HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(data.contents, 'text/html');
+
+        // Seleccionar los bloques o filas de partidos (según la estructura devuelta por RFFM)
+        const partidos = doc.querySelectorAll('.tabla-resultados tbody tr');
+
+        if (!partidos || partidos.length === 0) {
+          contenedor.innerHTML = '<p style="text-align:center;">No se encontraron partidos o la web requiere renderizado JS activo.</p>';
+          return;
+        }
+
+        contenedor.innerHTML = ''; // Limpiar mensaje de carga
+
+        partidos.forEach(partido => {
+          // Extraer nombres de equipos y resultado
+          const local = partido.querySelector('.local')?.innerText.trim() || 'Local';
+          const visitante = partido.querySelector('.visitante')?.innerText.trim() || 'Visitante';
+          const resultado = partido.querySelector('.resultado')?.innerText.trim() || 'vs';
+          const fechaHora = partido.querySelector('.fecha')?.innerText.trim() || 'Por determinar';
+
+          // Dibujar tarjeta sencilla
+          const card = document.createElement('div');
+          card.className = 'match-card';
+          
+          // Marca en azul si es tu equipo (puedes cambiar 'MiEquipo' por el nombre real)
+          if (local.includes("NombreDeTuEquipo") || visitante.includes("NombreDeTuEquipo")) {
+            card.classList.add('highlight');
+          }
+
+          card.innerHTML = `
+            <div class="teams">
+              <span>${local}</span>
+              <span class="score">${resultado}</span>
+              <span>${visitante}</span>
+            </div>
+            <div class="meta">📅 ${fechaHora}</div>
+          `;
+          contenedor.appendChild(card);
+        });
+
+      } catch (error) {
+        console.error(error);
+        contenedor.innerHTML = '<p style="text-align:center; color:red;">Error al cargar la información. Inténtalo de nuevo.</p>';
+      }
+    }
+  </script>
+</body>
+</html>
