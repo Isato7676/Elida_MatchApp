@@ -1,0 +1,266 @@
+:root {
+  --primary: #004d98;
+  --primary-dark: #003366;
+  --secondary: #ed1c24;
+  --bg: #f4f6f9;
+  --card-bg: #ffffff;
+  --text: #333333;
+  --highlight: #e8f0fe;
+  --border-color: #e2e8f0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 12px;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
+  color: var(--primary);
+  font-size: 1.4rem;
+  margin: 10px 0 16px 0;
+  font-weight: 800;
+}
+
+.card {
+  background: var(--card-bg);
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  margin-bottom: 16px;
+}
+
+.form-group {
+  margin-bottom: 12px;
+}
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: #555;
+}
+
+select, button {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background-color: #fff;
+  box-sizing: border-box;
+}
+
+select:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.btn-primary:active {
+  background-color: var(--primary-dark);
+}
+
+.btn-primary:disabled {
+  background-color: #a0b2c6;
+}
+
+.status-msg {
+  font-size: 0.85rem;
+  color: var(--primary);
+  margin-top: 8px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Pestañas de Navegación */
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  background: #e2e8f0;
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px 4px;
+  border: none;
+  background: transparent;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #64748b;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  background: var(--card-bg);
+  color: var(--primary);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+/* Tarjetas de Favoritos */
+.fav-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  background: #ffffff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.fav-info {
+  flex-grow: 1;
+  cursor: pointer;
+}
+
+.fav-title {
+  font-weight: bold;
+  color: var(--primary);
+  font-size: 1rem;
+}
+
+.fav-sub {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 2px;
+}
+
+.btn-del {
+  background: transparent;
+  border: none;
+  color: var(--secondary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  width: auto;
+  padding: 0 8px;
+}
+
+/* Tarjetas de Partidos */
+.match-card {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.match-card.highlight {
+  background-color: var(--highlight);
+  border-color: #b3d4fc;
+}
+
+.match-header {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 8px;
+  text-align: center;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 4px;
+  font-weight: 500;
+}
+
+.match-teams {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.team-name {
+  flex: 1;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.score {
+  background: #1e293b;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  margin: 0 8px;
+  min-width: 40px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Tabla de Clasificación */
+.table-container {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+th, td {
+  padding: 10px 4px;
+  text-align: center;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+th {
+  background-color: #f8fafc;
+  color: #475569;
+  font-weight: bold;
+}
+
+tr.highlight-team {
+  background-color: var(--highlight);
+  font-weight: bold;
+}
+
+.nav-jornada {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.nav-jornada button {
+  width: auto;
+  padding: 8px 14px;
+}
+
+.console-log {
+  background: #1e1e1e;
+  color: #00ff00;
+  font-family: monospace;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  max-height: 120px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
