@@ -3,50 +3,503 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Élida Infantil - Resultados</title>
+  <title>Mi Futbol Base - App</title>
   <style>
-    body, html {
+    :root {
+      --primary: #0d6efd;
+      --primary-dark: #0a58ca;
+      --bg: #f4f6f9;
+      --surface: #ffffff;
+      --text: #212529;
+      --text-muted: #6c757d;
+      --highlight: #e7f1ff;
+      --border: #e0e0e0;
+      --danger: #dc3545;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      height: 100%;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: #f4f6f9;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
       display: flex;
       flex-direction: column;
+      min-height: 100vh;
+      max-width: 480px; /* Simula pantalla de teléfono móvil */
+      margin: 0 auto;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      position: relative;
     }
+
+    /* Cabecera */
     header {
-      background: #0056b3;
+      background-color: var(--primary);
       color: white;
-      padding: 12px;
+      padding: 16px;
       text-align: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    header h2 {
-      margin: 0;
-      font-size: 1.1em;
+
+    header h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
     }
-    .iframe-container {
+
+    /* Contenedor de Pantallas */
+    main {
       flex: 1;
-      width: 100%;
-      height: 100%;
-      border: none;
+      padding: 16px;
+      padding-bottom: 80px; /* Espacio para el menú inferior */
     }
-    iframe {
+
+    /* Lógica de cambio de pantallas */
+    .screen {
+      display: none;
+    }
+    .screen.active {
+      display: block;
+    }
+
+    /* Tarjetas Generales */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    /* Botones */
+    .btn {
+      display: inline-block;
       width: 100%;
-      height: 100%;
+      padding: 12px;
+      background-color: var(--primary);
+      color: white;
       border: none;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .btn-danger {
+      background-color: transparent;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      width: auto;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+    }
+
+    /* PANTALLA 1: INICIO */
+    .team-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .team-info h3 {
+      font-size: 1.05rem;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+
+    .team-info p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* PANTALLA 2: BUSCADOR */
+    .search-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .search-box input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .category-header {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin: 16px 0 8px 4px;
+    }
+
+    /* PANTALLA 3: LIGA (Pestañas + Contenido) */
+    .subtabs {
+      display: flex;
+      background: #e9ecef;
+      border-radius: var(--radius);
+      padding: 4px;
+      margin-bottom: 16px;
+    }
+
+    .subtab {
+      flex: 1;
+      padding: 8px;
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .subtab.active {
+      background: var(--surface);
+      color: var(--primary);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    /* Selector de Jornadas */
+    .jornada-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      background: var(--surface);
+      padding: 8px 12px;
+      border-radius: var(--radius);
+    }
+
+    .jornada-nav button {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 1.2rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    /* Tarjeta de Partido */
+    .match-card {
+      padding: 12px;
+    }
+
+    .match-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      border-bottom: 1px solid #f0f0f0;
+      padding-bottom: 6px;
+    }
+
+    .match-body {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .match-team {
+      flex: 1;
+    }
+    .match-team.right {
+      text-align: right;
+    }
+
+    .match-score {
+      background: var(--highlight);
+      color: var(--primary-dark);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 1rem;
+      margin: 0 8px;
+    }
+
+    /* Tabla de Clasificación */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 10px 8px;
+      text-align: center;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    th {
+      background: #f8f9fa;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    td.team-name {
+      text-align: left;
+      font-weight: 600;
+    }
+
+    tr.my-team {
+      background-color: var(--highlight);
+      font-weight: 700;
+    }
+
+    /* Menú de Navegación Inferior Móvil */
+    nav.bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      background: var(--surface);
+      display: flex;
+      border-top: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .nav-item {
+      flex: 1;
+      padding: 10px 0;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .nav-item icon {
+      display: block;
+      font-size: 1.2rem;
+      margin-bottom: 2px;
     }
   </style>
 </head>
 <body>
 
   <header>
-    <h2>CD Élida Olimpia - Calendario y Resultados</h2>
+    <h1 id="header-title">Mis Equipos</h1>
   </header>
 
-  <div class="iframe-container">
-    <iframe src="https://www.rffm.es/competicion/resultados-y-jornadas?temporada=22&competicion=26737819&grupo=26737824&jornada=1&tipojuego=1"></iframe>
-  </div>
+  <main>
+    <!-- 1. PANTALLA: PORTADA / MIS EQUIPOS -->
+    <section id="screen-home" class="screen active">
+      <div style="margin-bottom: 16px;">
+        <button class="btn" onclick="showScreen('search', 'Buscar Equipo')">➕ Añadir Nuevo Equipo</button>
+      </div>
 
+      <div class="card team-card" onclick="showScreen('league', 'C.D. Élida Olimpia A')">
+        <div class="team-info">
+          <h3>C.D. Élida Olimpia "A"</h3>
+          <p>Infantil Primera — Grupo 15</p>
+        </div>
+        <button class="btn-danger" onclick="event.stopPropagation(); alert('Equipo eliminado de tus seguidos');">🗑️</button>
+      </div>
+
+      <div class="card team-card" onclick="showScreen('league', 'A.D. Unión Adarve B')">
+        <div class="team-info">
+          <h3>A.D. Unión Adarve "B"</h3>
+          <p>Alevín Preferente — Grupo 4</p>
+        </div>
+        <button class="btn-danger" onclick="event.stopPropagation(); alert('Equipo eliminado de tus seguidos');">🗑️</button>
+      </div>
+    </section>
+
+    <!-- 2. PANTALLA: BUSCADOR -->
+    <section id="screen-search" class="screen">
+      <div class="search-box">
+        <input type="text" value="Elida" placeholder="Nombre del club o equipo...">
+        <button class="btn" style="width: auto; padding: 0 16px;">Buscar</button>
+      </div>
+
+      <div class="category-header">Categoría Infantil</div>
+      
+      <div class="card team-card">
+        <div class="team-info">
+          <h3>C.D. Élida Olimpia "A"</h3>
+          <p>Primera Infantil — Grupo 15</p>
+        </div>
+        <button class="btn" style="width: auto; padding: 6px 12px; font-size: 0.8rem;">⭐ Seguir</button>
+      </div>
+
+      <div class="card team-card">
+        <div class="team-info">
+          <h3>C.D. Élida Olimpia "B"</h3>
+          <p>Segunda Infantil — Grupo 18</p>
+        </div>
+        <button class="btn" style="width: auto; padding: 6px 12px; font-size: 0.8rem;">⭐ Seguir</button>
+      </div>
+
+      <div class="category-header">Categoría Alevín</div>
+
+      <div class="card team-card">
+        <div class="team-info">
+          <h3>C.D. Élida Olimpia "A"</h3>
+          <p>Preferente Alevín — Grupo 5</p>
+        </div>
+        <button class="btn" style="width: auto; padding: 6px 12px; font-size: 0.8rem;">⭐ Seguir</button>
+      </div>
+    </section>
+
+    <!-- 3. PANTALLA: DETALLE LIGA (CLASIFICACIÓN Y CALENDARIO) -->
+    <section id="screen-league" class="screen">
+      <!-- Selector Interno (Pestañas) -->
+      <div class="subtabs">
+        <div class="subtab active" onclick="switchSubTab('calendar')">📅 Calendario</div>
+        <div class="subtab" onclick="switchSubTab('table')">📊 Clasificación</div>
+      </div>
+
+      <!-- VISTA CALENDARIO -->
+      <div id="subtab-calendar">
+        <div class="jornada-nav">
+          <button>◄</button>
+          <span><strong>Jornada 5</strong> de 30</span>
+          <button>►</button>
+        </div>
+
+        <!-- Partido Destacado de nuestro equipo -->
+        <div class="card match-card" style="border-left: 4px solid var(--primary);">
+          <div class="match-header">
+            <span>⏰ Sáb 04/10 — 10:30h</span>
+            <span>📍 C.M.F. La Elipa</span>
+          </div>
+          <div class="match-body">
+            <span class="match-team">C.D. Élida Olimpia A</span>
+            <span class="match-score">3 - 1</span>
+            <span class="match-team right">Rayo Vallecano C</span>
+          </div>
+        </div>
+
+        <!-- Otro partido del grupo -->
+        <div class="card match-card">
+          <div class="match-header">
+            <span>⏰ Sáb 04/10 — 12:00h</span>
+            <span>📍 Polideportivo Vicálvaro</span>
+          </div>
+          <div class="match-body">
+            <span class="match-team">Vicálvaro A</span>
+            <span class="match-score">0 - 2</span>
+            <span class="match-team right">ED Moratalaz B</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISTA CLASIFICACIÓN -->
+      <div id="subtab-table" style="display: none;">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Pos</th>
+                <th style="text-align: left;">Equipo</th>
+                <th>Pts</th>
+                <th>PJ</th>
+                <th>DG</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="my-team">
+                <td>1</td>
+                <td class="team-name">C.D. Élida Olimpia A</td>
+                <td>15</td>
+                <td>5</td>
+                <td>+12</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td class="team-name">ED Moratalaz B</td>
+                <td>12</td>
+                <td>5</td>
+                <td>+6</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td class="team-name">Rayo Vallecano C</td>
+                <td>9</td>
+                <td>5</td>
+                <td>+2</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td class="team-name">Vicálvaro A</td>
+                <td>6</td>
+                <td>5</td>
+                <td>-3</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Navegación Inferior Simulada -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="showScreen('home', 'Mis Equipos')">
+      <icon>🏠</icon>
+      Inicio
+    </div>
+    <div class="nav-item" id="nav-search" onclick="showScreen('search', 'Buscar Equipo')">
+      <icon>🔍</icon>
+      Buscar
+    </div>
+  </nav>
+
+  <script>
+    // Navegación entre pantallas principales
+    function showScreen(screenId, title) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+      document.getElementById('screen-' + screenId).classList.add('active');
+      document.getElementById('header-title').innerText = title;
+
+      if(screenId === 'home') document.getElementById('nav-home').classList.add('active');
+      if(screenId === 'search') document.getElementById('nav-search').classList.add('active');
+    }
+
+    // Cambiar entre Pestañas dentro de la pantalla de Liga (Calendario / Clasificación)
+    function switchSubTab(tab) {
+      document.querySelectorAll('.subtab').forEach(t => t.classList.remove('active'));
+      if(tab === 'calendar') {
+        document.querySelectorAll('.subtab')[0].classList.add('active');
+        document.getElementById('subtab-calendar').style.display = 'block';
+        document.getElementById('subtab-table').style.display = 'none';
+      } else {
+        document.querySelectorAll('.subtab')[1].classList.add('active');
+        document.getElementById('subtab-calendar').style.display = 'none';
+        document.getElementById('subtab-table').style.display = 'block';
+      }
+    }
+  </script>
 </body>
 </html>
