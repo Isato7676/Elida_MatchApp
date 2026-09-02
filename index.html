@@ -6,273 +6,68 @@
   <title>Mi Fútbol Base</title>
   <style>
     :root {
-      --bg: #0f172a;               /* Azul noche */
-      --surface: #1e293b;          /* Gris slate oscuro para tarjetas */
+      --bg: #0f172a;
+      --surface: #1e293b;
       --surface-border: #334155;
-      --primary: #2563eb;          /* Azul vibrante */
+      --primary: #2563eb;
       --primary-light: #3b82f6;
       --text: #f8fafc;
       --text-muted: #94a3b8;
       
-      /* Estilo destacado para TU EQUIPO */
-      --my-team-bg: #064e3b;       /* Verde noche */
-      --my-team-border: #10b981;   /* Borde esmeralda */
-      --my-team-text: #fbbf24;     /* Amarillo dorado */
+      --my-team-bg: #064e3b;
+      --my-team-border: #10b981;
+      --my-team-text: #fbbf24;
       
       --danger: #ef4444;
       --radius: 12px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; max-width: 480px; margin: 0 auto; border-left: 1px solid var(--surface-border); border-right: 1px solid var(--surface-border); }
 
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      max-width: 480px;
-      margin: 0 auto;
-      border-left: 1px solid var(--surface-border);
-      border-right: 1px solid var(--surface-border);
-      position: relative;
-    }
+    header { background-color: #1e293b; border-bottom: 1px solid var(--surface-border); padding: 16px; text-align: center; position: sticky; top: 0; z-index: 10; }
+    header h1 { font-size: 1.1rem; font-weight: 700; }
 
-    header {
-      background-color: #1e293b;
-      border-bottom: 1px solid var(--surface-border);
-      padding: 16px;
-      text-align: center;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    header h1 {
-      font-size: 1.1rem;
-      font-weight: 700;
-    }
-
-    main {
-      flex: 1;
-      padding: 16px;
-      padding-bottom: 90px;
-    }
-
+    main { flex: 1; padding: 16px; padding-bottom: 90px; }
     .screen { display: none; }
     .screen.active { display: block; }
 
-    .hero-banner {
-      background: linear-gradient(135deg, #1e40af 0%, #1e1b4b 100%);
-      border: 1px solid #3b82f6;
-      border-radius: var(--radius);
-      padding: 18px;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
+    .hero-banner { background: linear-gradient(135deg, #1e40af 0%, #1e1b4b 100%); border: 1px solid #3b82f6; border-radius: var(--radius); padding: 18px; margin-bottom: 20px; text-align: center; }
     .hero-banner h2 { font-size: 1.2rem; margin-bottom: 6px; color: #fff; }
     .hero-banner p { font-size: 0.85rem; color: #93c5fd; margin-bottom: 12px; }
 
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--surface-border);
-      border-radius: var(--radius);
-      padding: 14px;
-      margin-bottom: 12px;
-    }
+    .card { background: var(--surface); border: 1px solid var(--surface-border); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
+    
+    .btn { display: inline-block; width: 100%; padding: 12px; background-color: var(--primary); color: white; border: none; border-radius: var(--radius); font-weight: 600; font-size: 0.9rem; cursor: pointer; text-align: center; }
+    .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); padding: 6px 10px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; }
 
-    .btn {
-      display: inline-block;
-      width: 100%;
-      padding: 12px;
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      border-radius: var(--radius);
-      font-weight: 600;
-      font-size: 0.9rem;
-      cursor: pointer;
-      text-align: center;
-    }
-
-    .btn-danger {
-      background: transparent;
-      color: var(--danger);
-      border: 1px solid var(--danger);
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      cursor: pointer;
-    }
-
-    .team-card {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-    }
-
+    .team-card { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
     .team-info h3 { font-size: 1rem; color: var(--text); margin-bottom: 4px; }
     .team-info p { font-size: 0.8rem; color: var(--text-muted); }
 
-    .search-box {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
+    .form-group input { width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--surface-border); color: var(--text); border-radius: var(--radius); outline: none; }
 
-    .search-box input {
-      flex: 1;
-      padding: 12px;
-      background: var(--surface);
-      border: 1px solid var(--surface-border);
-      color: var(--text);
-      border-radius: var(--radius);
-      outline: none;
-    }
-
-    .subtabs {
-      display: flex;
-      background: var(--surface);
-      border: 1px solid var(--surface-border);
-      border-radius: var(--radius);
-      padding: 4px;
-      margin-bottom: 16px;
-    }
-
-    .subtab {
-      flex: 1;
-      padding: 10px;
-      text-align: center;
-      font-size: 0.85rem;
-      font-weight: 600;
-      border-radius: 8px;
-      cursor: pointer;
-      color: var(--text-muted);
-    }
-
+    .subtabs { display: flex; background: var(--surface); border: 1px solid var(--surface-border); border-radius: var(--radius); padding: 4px; margin-bottom: 16px; }
+    .subtab { flex: 1; padding: 10px; text-align: center; font-size: 0.85rem; font-weight: 600; border-radius: 8px; cursor: pointer; color: var(--text-muted); }
     .subtab.active { background: var(--primary); color: white; }
 
-    .jornada-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-      background: var(--surface);
-      border: 1px solid var(--surface-border);
-      padding: 10px 14px;
-      border-radius: var(--radius);
-    }
-
-    .jornada-nav button {
-      background: #334155;
-      border: none;
-      color: var(--text);
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+    .jornada-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; background: var(--surface); border: 1px solid var(--surface-border); padding: 10px 14px; border-radius: var(--radius); }
+    .jornada-nav button { background: #334155; border: none; color: var(--text); padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
     .match-card { padding: 12px; }
-    .match-card.is-my-team {
-      background-color: var(--my-team-bg);
-      border: 1px solid var(--my-team-border);
-    }
+    .match-card.is-my-team { background-color: var(--my-team-bg); border: 1px solid var(--my-team-border); }
+    .match-card.is-my-team .match-team.highlight-team { color: var(--my-team-text); font-weight: 800; }
 
-    .match-card.is-my-team .match-team.highlight-team {
-      color: var(--my-team-text);
-      font-weight: 800;
-    }
-
-    .match-header {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin-bottom: 10px;
-      border-bottom: 1px solid var(--surface-border);
-      padding-bottom: 6px;
-    }
-
-    .match-body {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
-
+    .match-header { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; border-bottom: 1px solid var(--surface-border); padding-bottom: 6px; }
+    .match-body { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.9rem; }
     .match-team { flex: 1; color: var(--text); }
     .match-team.right { text-align: right; }
+    .match-score { background: #0f172a; border: 1px solid var(--surface-border); color: var(--primary-light); padding: 4px 10px; border-radius: 6px; font-size: 0.95rem; font-weight: bold; margin: 0 8px; }
 
-    .match-score {
-      background: #0f172a;
-      border: 1px solid var(--surface-border);
-      color: var(--primary-light);
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 0.95rem;
-      font-weight: bold;
-      margin: 0 8px;
-    }
-
-    .table-container { overflow-x: auto; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-      background: var(--surface);
-      border: 1px solid var(--surface-border);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
-
-    th, td {
-      padding: 10px 8px;
-      text-align: center;
-      border-bottom: 1px solid var(--surface-border);
-    }
-
-    th { background: #0f172a; color: var(--text-muted); }
-    td.team-name { text-align: left; }
-
-    tr.my-team-row {
-      background-color: var(--my-team-bg);
-      color: var(--my-team-text);
-      font-weight: bold;
-    }
-
-    nav.bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 480px;
-      background: #1e293b;
-      display: flex;
-      border-top: 1px solid var(--surface-border);
-      z-index: 100;
-    }
-
-    .nav-item {
-      flex: 1;
-      padding: 12px 0;
-      text-align: center;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-weight: 600;
-    }
-
+    nav.bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: #1e293b; display: flex; border-top: 1px solid var(--surface-border); z-index: 100; }
+    .nav-item { flex: 1; padding: 12px 0; text-align: center; font-size: 0.8rem; color: var(--text-muted); cursor: pointer; font-weight: 600; }
     .nav-item.active { color: var(--primary-light); }
   </style>
 </head>
@@ -283,36 +78,48 @@
   </header>
 
   <main>
-    <!-- 1. PANTALLA: PORTADA -->
+    <!-- 1. PORTADA -->
     <section id="screen-home" class="screen active">
       <div class="hero-banner">
         <h2>⚽ Mi Fútbol Base</h2>
-        <p>Busca y añade tus equipos para ver resultados y clasificaciones.</p>
-        <button class="btn" onclick="showScreen('search', 'Buscar Equipo')">➕ Buscar Nuevo Equipo</button>
+        <p>Añade tus equipos pegando la URL de la RFFM.</p>
+        <button class="btn" onclick="showScreen('add', 'Añadir Nuevo Equipo')">➕ Añadir Nuevo Equipo</button>
       </div>
 
       <div id="my-teams-list"></div>
     </section>
 
-    <!-- 2. PANTALLA: BUSCADOR DE EQUIPOS -->
-    <section id="screen-search" class="screen">
-      <div class="search-box">
-        <input type="text" id="search-input" placeholder="Escribe el nombre del club (ej: Elida)">
-        <button class="btn" style="width: auto; padding: 0 16px;" onclick="buscarEquiposReales()">Buscar</button>
-      </div>
-
-      <div id="search-results">
-        <p style="text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: 20px;">
-          Ingresa el texto para buscar equipos registrados en la RFFM.
+    <!-- 2. AÑADIR EQUIPO POR URL DE RFFM -->
+    <section id="screen-add" class="screen">
+      <div class="card">
+        <h3 style="margin-bottom: 12px; font-size: 1rem;">Añadir por enlace de la RFFM</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px;">
+          Pega el enlace de la página de resultados, calendario o clasificación de tu equipo en la RFFM:
         </p>
+
+        <div class="form-group">
+          <label>Enlace / URL de la RFFM</label>
+          <input type="text" id="url-input" placeholder="https://www.rffm.es/competicion/calendario?...">
+        </div>
+
+        <div class="form-group">
+          <label>Nombre personalizado de tu equipo</label>
+          <input type="text" id="name-input" placeholder="Ej: Élida Olimpia Infantil A">
+        </div>
+
+        <div class="form-group">
+          <label>Texto para identificar tu equipo en los partidos (para resaltarlo)</label>
+          <input type="text" id="filter-input" placeholder="Ej: ELIDA">
+        </div>
+
+        <button class="btn" onclick="procesarUrlYGuardar()">⭐ Guardar Equipo</button>
       </div>
     </section>
 
-    <!-- 3. PANTALLA: DETALLE LIGA -->
+    <!-- 3. DETALLE DE LIGA -->
     <section id="screen-league" class="screen">
       <div class="subtabs">
         <div class="subtab active" onclick="switchSubTab('calendar')">📅 Calendario</div>
-        <div class="subtab" onclick="switchSubTab('table')">📊 Clasificación</div>
       </div>
 
       <div id="subtab-calendar">
@@ -326,32 +133,12 @@
           <p style="text-align: center; color: var(--text-muted);">Cargando jornada...</p>
         </div>
       </div>
-
-      <div id="subtab-table" style="display: none;">
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Pos</th>
-                <th style="text-align: left;">Equipo</th>
-                <th>Pts</th>
-                <th>PJ</th>
-                <th>DG</th>
-              </tr>
-            </thead>
-            <tbody id="table-body">
-              <tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">Cargando clasificación...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
     </section>
   </main>
 
   <nav class="bottom-nav" id="bottom-nav"></nav>
 
   <script>
-    // Inicialización: Empezamos vacíos (sin equipos de relleno)
     let misEquipos = JSON.parse(localStorage.getItem('misEquipos')) || [];
     let equipoActivo = null;
     let jornadaActual = 1;
@@ -361,44 +148,13 @@
       showScreen('home', 'Mis Equipos');
     };
 
-    // Función auxiliar para realizar peticiones evitando bloqueos CORS
-    async function fetchConProxy(url) {
-      const proxies = [
-        `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-        `https://corsproxy.io/?${encodeURIComponent(url)}`
-      ];
-
-      for (let proxy of proxies) {
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 6000); // 6 segundos de timeout máximo
-
-          const res = await fetch(proxy, { signal: controller.signal });
-          clearTimeout(timeoutId);
-
-          if (res.ok) {
-            if (proxy.includes('allorigins')) {
-              const json = await res.json();
-              return json.contents;
-            } else {
-              return await res.text();
-            }
-          }
-        } catch (e) {
-          console.warn("Fallo en proxy, intentando siguiente...", proxy);
-        }
-      }
-      throw new Error("No se pudo conectar con el servidor de la RFFM");
-    }
-
-    // Dibujar lista de equipos guardados en la pantalla de inicio
     function renderMyTeams() {
       const container = document.getElementById('my-teams-list');
       if (misEquipos.length === 0) {
         container.innerHTML = `
           <div style="text-align:center; color: var(--text-muted); padding: 30px 10px;">
             <p style="font-size: 1rem; margin-bottom: 8px;">No tienes ningún equipo guardado.</p>
-            <p style="font-size: 0.8rem;">Pulsa en <strong>"➕ Buscar Nuevo Equipo"</strong> para empezar.</p>
+            <p style="font-size: 0.8rem;">Pulsa en <strong>"➕ Añadir Nuevo Equipo"</strong> para pegar el enlace de la RFFM.</p>
           </div>`;
         return;
       }
@@ -411,7 +167,7 @@
         card.innerHTML = `
           <div class="team-info">
             <h3>${eq.nombre}</h3>
-            <p>${eq.categoria}</p>
+            <p>Competición: ${eq.competicion} | Grupo: ${eq.grupo}</p>
           </div>
           <button class="btn-danger" onclick="event.stopPropagation(); eliminarEquipo(${index});">🗑️</button>
         `;
@@ -436,97 +192,55 @@
       } else {
         nav.innerHTML = `
           <div class="nav-item ${screenId === 'home' ? 'active' : ''}" onclick="showScreen('home', 'Mis Equipos')">🏠 Inicio</div>
-          <div class="nav-item ${screenId === 'search' ? 'active' : ''}" onclick="showScreen('search', 'Buscar Equipo')">🔍 Buscar Nuevo</div>
+          <div class="nav-item ${screenId === 'add' ? 'active' : ''}" onclick="showScreen('add', 'Añadir Equipo')">➕ Añadir</div>
         `;
       }
     }
 
-    // Buscador Dinámico contra la RFFM
-    async function buscarEquiposReales() {
-      const query = document.getElementById('search-input').value.trim();
-      const resContainer = document.getElementById('search-results');
+    // Extrae automáticamente los parámetros del enlace pegado por el usuario
+    function procesarUrlYGuardar() {
+      const urlText = document.getElementById('url-input').value.trim();
+      const nombreCustom = document.getElementById('name-input').value.trim() || "Mi Equipo Infantil";
+      const filtroText = document.getElementById('filter-input').value.trim().toUpperCase() || "ELIDA";
 
-      if (!query) {
-        resContainer.innerHTML = '<p style="text-align:center; color: var(--danger);">Escribe al menos un nombre para buscar.</p>';
+      if (!urlText.includes('competicion') || !urlText.includes('grupo')) {
+        alert('Por favor pega una URL válida de la RFFM que contenga "competicion" y "grupo".');
         return;
       }
 
-      resContainer.innerHTML = '<p style="text-align:center; color: var(--text-muted);">Buscando en la federación...</p>';
-
       try {
-        const searchUrl = `https://www.rffm.es/pnfg/NPfd_Busqueda_Equipos?campo_busqueda=${encodeURIComponent(query)}`;
-        const htmlText = await fetchConProxy(searchUrl);
-        
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(htmlText, 'text/html');
+        const urlObj = new URL(urlText);
+        const params = new URLSearchParams(urlObj.search);
 
-        // Parsear enlaces de resultados encontrados en la web de la RFFM
-        const enlaces = doc.querySelectorAll('a[href*="NPfd_Visor_Resultados"]');
+        const temporada = params.get('temporada') || '22';
+        const competicion = params.get('competicion');
+        const grupo = params.get('grupo');
 
-        if (enlaces.length === 0) {
-          resContainer.innerHTML = `<p style="text-align:center; color: var(--text-muted);">No se encontraron equipos para "${query}". Pruebe con otro nombre.</p>`;
+        if (!competicion || !grupo) {
+          alert('No se pudieron extraer los códigos del enlace.');
           return;
         }
 
-        resContainer.innerHTML = '';
-        const mapaEquipos = new Map();
+        const nuevoEquipo = {
+          nombre: nombreCustom,
+          temporada: temporada,
+          competicion: competicion,
+          grupo: grupo,
+          filtroNombre: filtroText
+        };
 
-        enlaces.forEach(a => {
-          const href = a.getAttribute('href');
-          const nombreEquipo = a.innerText.trim();
-
-          // Extraer parámetros del enlace oficial
-          const urlParams = new URLSearchParams(href.split('?')[1]);
-          const codTemporada = urlParams.get('cod_temporada') || '22';
-          const codCompeticion = urlParams.get('cod_competicion');
-          const codGrupo = urlParams.get('cod_grupo');
-
-          if (codCompeticion && codGrupo && nombreEquipo) {
-            const key = `${nombreEquipo}-${codCompeticion}-${codGrupo}`;
-            if (!mapaEquipos.has(key)) {
-              mapaEquipos.set(key, {
-                nombre: nombreEquipo,
-                categoria: `Competición RFFM (Grupo ${codGrupo})`,
-                temporada: codTemporada,
-                competicion: codCompeticion,
-                grupo: codGrupo,
-                filtroNombre: query.toUpperCase()
-              });
-            }
-          }
-        });
-
-        // Mostrar los resultados procesados
-        mapaEquipos.forEach(eq => {
-          const card = document.createElement('div');
-          card.className = 'card team-card';
-          card.innerHTML = `
-            <div class="team-info">
-              <h3>${eq.nombre}</h3>
-              <p>${eq.categoria}</p>
-            </div>
-            <button class="btn" style="width: auto; padding: 6px 12px; font-size: 0.8rem;" onclick='guardarNuevoEquipo(${JSON.stringify(eq)})'>⭐ Seguir</button>
-          `;
-          resContainer.appendChild(card);
-        });
-
-      } catch (err) {
-        console.error(err);
-        resContainer.innerHTML = '<p style="text-align:center; color: var(--danger);">Error al conectar con el buscador. Inténtalo de nuevo en unos segundos.</p>';
-      }
-    }
-
-    // Guardar nuevo equipo en LocalStorage
-    function guardarNuevoEquipo(eq) {
-      const existe = misEquipos.some(e => e.nombre === eq.nombre && e.grupo === eq.grupo);
-      if (!existe) {
-        misEquipos.push(eq);
+        misEquipos.push(nuevoEquipo);
         localStorage.setItem('misEquipos', JSON.stringify(misEquipos));
         renderMyTeams();
-        alert(`¡Guardado! ${eq.nombre} se ha añadido a tu lista.`);
+        
+        // Limpiar campos y volver a inicio
+        document.getElementById('url-input').value = '';
+        document.getElementById('name-input').value = '';
         showScreen('home', 'Mis Equipos');
-      } else {
-        alert('Este equipo ya está en tu lista de seguidos.');
+        alert('¡Equipo guardado con éxito!');
+
+      } catch (e) {
+        alert('URL no válida. Asegúrate de copiar el enlace completo desde el navegador.');
       }
     }
 
@@ -537,19 +251,6 @@
       cargarDatosRFFM();
     }
 
-    function switchSubTab(tab) {
-      document.querySelectorAll('.subtab').forEach(t => t.classList.remove('active'));
-      if(tab === 'calendar') {
-        document.querySelectorAll('.subtab')[0].classList.add('active');
-        document.getElementById('subtab-calendar').style.display = 'block';
-        document.getElementById('subtab-table').style.display = 'none';
-      } else {
-        document.querySelectorAll('.subtab')[1].classList.add('active');
-        document.getElementById('subtab-calendar').style.display = 'none';
-        document.getElementById('subtab-table').style.display = 'block';
-      }
-    }
-
     function cambiarJornada(delta) {
       if (jornadaActual + delta >= 1) {
         jornadaActual += delta;
@@ -558,7 +259,6 @@
       }
     }
 
-    // Carga de partidos y clasificación
     async function cargarDatosRFFM() {
       if (!equipoActivo) return;
 
@@ -566,43 +266,37 @@
       matchesContainer.innerHTML = '<p style="text-align:center; color: var(--text-muted); padding: 20px;">Cargando jornada...</p>';
 
       const targetUrl = `https://www.rffm.es/competicion/resultados-y-jornadas?temporada=${equipoActivo.temporada}&competicion=${equipoActivo.competicion}&grupo=${equipoActivo.grupo}&jornada=${jornadaActual}&tipojuego=1`;
+      
+      // Usamos corsproxy.io por ser más rápido para Next.js
+      const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
 
       try {
-        const htmlText = await fetchConProxy(targetUrl);
+        const res = await fetch(proxyUrl);
+        const htmlText = await res.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(htmlText, 'text/html');
 
-        const filas = doc.querySelectorAll('.tabla-resultados tbody tr, .table-responsive tbody tr');
+        const filas = doc.querySelectorAll('tr');
 
         if (filas.length > 0) {
           matchesContainer.innerHTML = '';
           filas.forEach(fila => {
-            const local = fila.querySelector('.local, td:nth-child(2)')?.innerText.trim() || 'Local';
-            const visitante = fila.querySelector('.visitante, td:nth-child(4)')?.innerText.trim() || 'Visitante';
-            const resultado = fila.querySelector('.resultado, td:nth-child(3)')?.innerText.trim() || 'vs';
-            const fechaHora = fila.querySelector('.fecha, td:nth-child(1)')?.innerText.trim() || 'Por determinar';
-
-            const esMiEquipo = local.toUpperCase().includes(equipoActivo.filtroNombre) || visitante.toUpperCase().includes(equipoActivo.filtroNombre);
-
-            const card = document.createElement('div');
-            card.className = `card match-card ${esMiEquipo ? 'is-my-team' : ''}`;
-            card.innerHTML = `
-              <div class="match-header"><span>⏰ ${fechaHora}</span></div>
-              <div class="match-body">
-                <span class="match-team ${local.toUpperCase().includes(equipoActivo.filtroNombre) ? 'highlight-team' : ''}">${local}</span>
-                <span class="match-score">${resultado}</span>
-                <span class="match-team right ${visitante.toUpperCase().includes(equipoActivo.filtroNombre) ? 'highlight-team' : ''}">${visitante}</span>
-              </div>
-            `;
-            matchesContainer.appendChild(card);
+            const textoFila = fila.innerText.trim();
+            if (textoFila.length > 10) {
+              const card = document.createElement('div');
+              const esMiEquipo = textoFila.toUpperCase().includes(equipoActivo.filtroNombre);
+              card.className = `card match-card ${esMiEquipo ? 'is-my-team' : ''}`;
+              card.innerHTML = `<div style="font-size:0.85rem;">${textoFila}</div>`;
+              matchesContainer.appendChild(card);
+            }
           });
         } else {
-          matchesContainer.innerHTML = '<p style="text-align:center; color: var(--text-muted); padding: 20px;">Sin datos para esta jornada.</p>';
+          matchesContainer.innerHTML = '<p style="text-align:center; color: var(--text-muted); padding: 20px;">No se encontraron partidos para esta jornada.</p>';
         }
 
       } catch (err) {
         console.error(err);
-        matchesContainer.innerHTML = '<p style="text-align:center; color: var(--danger); padding: 20px;">Error de conexión con la federación.</p>';
+        matchesContainer.innerHTML = '<p style="text-align:center; color: var(--danger); padding: 20px;">Error al conectar con la RFFM. Comprueba tu conexión.</p>';
       }
     }
   </script>
