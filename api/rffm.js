@@ -18,8 +18,17 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Es necesario indicar un endpoint' });
     }
 
+    // Construcción dinámica de la URL
+    let targetUrl = '';
     const queryString = new URLSearchParams(queryParams).toString();
-    const targetUrl = `https://www.rffm.es/api/${endpoint}${queryString ? `?${queryString}` : ''}`;
+
+    if (endpoint === 'calendario-next') {
+      // Petición al motor de datos de Next.js descubierto
+      targetUrl = `https://www.rffm.es/_next/data/inlzUL9hzqhAubIvBCD2y/competicion/calendario.json?${queryString}`;
+    } else {
+      // Peticiones estándar de catálogo (seasons, competitions, groups)
+      targetUrl = `https://www.rffm.es/api/${endpoint}${queryString ? `?${queryString}` : ''}`;
+    }
 
     const response = await fetch(targetUrl, {
       headers: {
