@@ -290,36 +290,66 @@
       }
     }
 
-    // 5. CARGAR EQUIPOS
-    async function loadTeams() {
-      const grupo = document.getElementById('select-group').value;
-      if (!grupo) return;
+// 5. CARGAR EQUIPOS (Usando los endpoints confirmados del informe)
+async function loadTeams() {
+  const temporada = document.getElementById('select-season').value;
+  const tipojuego = document.getElementById('select-gametype').value;
+  const competicion = document.getElementById('select-competition').value;
+  const grupo = document.getElementById('select-group').value;
+  
+  if (!grupo) return;
 
-      const select = document.getElementById('select-team');
-      select.disabled = false;
-      select.innerHTML = '<option value="">Cargando...</option>';
+  const select = document.getElementById('select-team');
+  select.disabled = false;
+  select.innerHTML = '<option value="">Cargando equipos...</option>';
 
-      try {
-        const teams = await apiFetch('group-teams', { grupo });
-        
-        if (!Array.isArray(teams) || teams.length === 0) {
-          select.innerHTML = '<option value="">Sin equipos disponibles</option>';
-          return;
-        }
+  try {
+    // 1. Intentamos primero con /api/group-teams
+    let teams = await apiFetch('group-teams', { grupo });
 
+    // Si viene vacío o no es array, usamos el endpoint del calendario como respaldo
+    if (!Array.isArray(teams) || teams.length === 0) {
+      const calendar = await apiFetch('calendar', { temporada, tipojuego, competicion, grupo });
+      
+      if (Array.isArray(calendar) && calendar.length > 0) {
         select.innerHTML = '<option value="">Selecciona tu Equipo</option>';
-        teams.forEach(t => {
-          const code = t.codigo || t.cod_equipo || t.id_equipo || t.id;
-          const name = t.nombre || t.nombre_equipo || t.equipo;
-          if (code && name) {
-            select.innerHTML += `<option value="${code}">${name}</option>`;
-          }
+        const teamMap = new Map();
+        
+        calendar.forEach(match => {
+          const codeEq1 = match.cod_equipo_local || match.codigo_equipo_local || match.id_equipo_local;
+          const nameEq1 = match.equipo_local || match.nombre_equipo_local;
+          const codeEq2 = match.cod_equipo_visitante || match.codigo_equipo_visitante || match.id_equipo_visitante;
+          const nameEq2 = match.equipo_visitante || match.nombre_equipo_visitante;
+
+          if (codeEq1 && nameEq1) teamMap.set(codeEq1, nameEq1);
+          if (codeEq2 && nameEq2) teamMap.set(codeEq2, nameEq2);
         });
-      } catch (e) {
-        console.error("Error cargando equipos", e);
-        select.innerHTML = '<option value="">Error al cargar</option>';
+
+        teamMap.forEach((nombre, codigo) => {
+          select.innerHTML += `<option value="${codigo}">${nombre}</option>`;
+        });
+        return;
       }
+
+      select.innerHTML = '<option value="">Sin equipos disponibles</option>';
+      return;
     }
+
+    // Si /api/group-teams devolvió datos directamente:
+    select.innerHTML = '<option value="">Selecciona tu Equipo</option>';
+    teams.forEach(t => {
+      const code = t.codigo || t.cod_equipo || t.id || t.id_equipo;
+      const name = t.nombre || t.nombre_equipo || t.equipo;
+      if (code && name) {
+        select.innerHTML += `<option value="${code}">${name}</option>`;
+      }
+    });
+
+  } catch (e) {
+    console.error("Error cargando equipos:", e);
+    select.innerHTML = '<option value="">Error al cargar equipos</option>';
+  }
+}
 
     // GUARDAR Y ADMINISTRAR FAVORITOS
     function saveFavorite() {
