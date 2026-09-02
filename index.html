@@ -90,7 +90,6 @@
       font-weight: 500;
     }
 
-    /* Pestañas */
     .tabs {
       display: flex;
       gap: 4px;
@@ -118,7 +117,6 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
-    /* Mis Equipos List */
     .fav-item {
       display: flex;
       justify-content: space-between;
@@ -158,7 +156,6 @@
       padding: 0 8px;
     }
 
-    /* Tarjetas de Partidos */
     .match-card {
       border: 1px solid #e2e8f0;
       border-radius: 8px;
@@ -205,7 +202,6 @@
       text-align: center;
     }
 
-    /* Tabla de Clasificación */
     .table-container {
       overflow-x: auto;
     }
@@ -251,22 +247,17 @@
   <div class="container">
     <h1>Infantil Elida MatchApp</h1>
 
-    <!-- PANTALLA PRINCIPAL CON PESTAÑAS (MIS EQUIPOS / AÑADIR EQUIPO) -->
+    <!-- PANTALLA PRINCIPAL -->
     <div id="view-main">
-      
       <div class="tabs">
         <button class="tab-btn active" onclick="showMainTab('favs')">⭐ Mis Equipos</button>
         <button class="tab-btn" onclick="showMainTab('add')">➕ Añadir Equipo</button>
       </div>
 
-      <!-- PESTAÑA 1: LISTADO DE EQUIPOS -->
       <div id="main-tab-favs" class="card">
-        <div id="favs-container">
-          <!-- Se puebla dinámicamente -->
-        </div>
+        <div id="favs-container"></div>
       </div>
 
-      <!-- PESTAÑA 2: FORMULARIO AÑADIR NUEVO EQUIPO -->
       <div id="main-tab-add" class="card" style="display: none;">
         <h2 style="font-size:1rem; margin-top:0; color:#555;">Buscar y Seleccionar Equipo</h2>
         
@@ -308,15 +299,12 @@
         </div>
 
         <button id="btn-add" class="btn-primary" disabled onclick="addFavorite()">Guardar en Mis Equipos</button>
-
         <div id="status" class="status-msg"></div>
       </div>
-
     </div>
 
-    <!-- PANTALLA DE DETALLE DE LIGA -->
+    <!-- PANTALLA DE DETALLE -->
     <div id="view-league" style="display: none;">
-      
       <div class="tabs">
         <button class="tab-btn active" onclick="showLeagueTab('home')">🏠 Inicio</button>
         <button class="tab-btn" onclick="showLeagueTab('calendar')">📅 Jornadas</button>
@@ -328,17 +316,14 @@
         <div id="league-sub-title" style="font-size:0.8rem; color:#666; margin-top:2px;"></div>
       </div>
 
-      <!-- VISTA CALENDARIO / JORNADAS -->
+      <!-- VISTA CALENDARIO -->
       <div id="tab-calendar" class="card">
         <div class="nav-jornada">
           <button class="btn-primary" onclick="changeJornada(-1)">◀ Anterior</button>
           <span id="jornada-label" style="font-weight:bold; font-size:0.95rem;">Jornada 1</span>
           <button class="btn-primary" onclick="changeJornada(1)">Siguiente ▶</button>
         </div>
-
-        <div id="matches-container">
-          <!-- Se puebla dinámicamente -->
-        </div>
+        <div id="matches-container"></div>
       </div>
 
       <!-- VISTA CLASIFICACIÓN -->
@@ -356,25 +341,20 @@
                 <th>PP</th>
               </tr>
             </thead>
-            <tbody id="standings-body">
-              <!-- Se puebla dinámicamente -->
-            </tbody>
+            <tbody id="standings-body"></tbody>
           </table>
         </div>
       </div>
-
     </div>
 
   </div>
 
   <script>
-    // Variables globales
     window.leagueData = null;
     window.currentFav = null;
     window.currentJornada = 1;
     window.maxJornadas = 34;
 
-    // Petición al proxy serverless
     async function apiFetch(endpoint, params = {}) {
       const query = new URLSearchParams({ endpoint, ...params }).toString();
       const response = await fetch(`/api/rffm?${query}`);
@@ -387,7 +367,6 @@
       renderFavorites();
     });
 
-    // PESTAÑAS PRINCIPALES (MIS EQUIPOS / AÑADIR)
     function showMainTab(tab) {
       document.querySelectorAll('#view-main .tab-btn').forEach(b => b.classList.remove('active'));
       if (tab === 'favs') {
@@ -402,7 +381,6 @@
       }
     }
 
-    // LOCAL STORAGE FAVORITOS
     function getFavorites() {
       return JSON.parse(localStorage.getItem('rffm_favs') || '[]');
     }
@@ -463,8 +441,6 @@
       const favs = getFavorites();
       favs.push(newFav);
       saveFavorites(favs);
-      
-      // Volver a la pestaña de Mis Equipos
       showMainTab('favs');
     }
 
@@ -480,7 +456,6 @@
       document.getElementById('btn-add').disabled = !selTeam.value;
     }
 
-    // DESPLEGABLES
     async function loadSeasons() {
       const select = document.getElementById('select-season');
       try {
@@ -616,7 +591,6 @@
       }
     }
 
-    // ABRIR DETALLE DE LIGA
     async function openLeague(favIndex) {
       const favs = getFavorites();
       const fav = favs[favIndex];
@@ -645,7 +619,6 @@
       }
     }
 
-    // PESTAÑAS DETALLE LIGA
     function showLeagueTab(tabName) {
       if (tabName === 'home') {
         document.getElementById('view-league').style.display = 'none';
@@ -668,7 +641,7 @@
       }
     }
 
-    // RENDERIZAR CLASIFICACIÓN (Escaneo profundo)
+    // PARSER MEJORADO DE CLASIFICACIÓN
     function renderStandings() {
       const tbody = document.getElementById('standings-body');
       tbody.innerHTML = '';
@@ -679,17 +652,13 @@
         if (!obj || typeof obj !== 'object' || standingsList.length > 0) return;
         
         if (Array.isArray(obj)) {
-          // Verificar si este array es la clasificación mirando el primer elemento
-          if (obj.length > 0 && (obj[0].puntos !== undefined || obj[0].ptos !== undefined || obj[0].posicion !== undefined)) {
+          if (obj.length > 0 && (obj[0].puntos !== undefined || obj[0].ptos !== undefined || obj[0].posicion !== undefined || obj[0].puesto !== undefined)) {
             standingsList = obj;
             return;
           }
           obj.forEach(item => extractStandingsDeep(item));
           return;
         }
-
-        if (Array.isArray(obj.clasificacion)) { standingsList = obj.clasificacion; return; }
-        if (Array.isArray(obj.standings)) { standingsList = obj.standings; return; }
 
         Object.keys(obj).forEach(k => {
           if (typeof obj[k] === 'object' && obj[k] !== null) extractStandingsDeep(obj[k]);
@@ -706,14 +675,14 @@
       const myCode = String(window.currentFav?.equipo || '');
 
       standingsList.forEach((item, index) => {
-        const pos = item.posicion || item.puesto || (index + 1);
+        const pos = item.posicion || item.puesto || item.orden || (index + 1);
         const name = item.nombre_equipo || item.equipo || item.nombre || 'Equipo';
         const code = String(item.cod_equipo || item.codigo_equipo || item.id_equipo || '');
-        const pts = item.puntos !== undefined ? item.puntos : (item.ptos || 0);
-        const pj = item.jugados !== undefined ? item.jugados : (item.partidos_jugados || 0);
-        const pg = item.ganados || item.pg || 0;
-        const pe = item.empatados || item.pe || 0;
-        const pp = item.perdidos || item.pp || 0;
+        const pts = item.puntos !== undefined ? item.puntos : (item.ptos !== undefined ? item.ptos : 0);
+        const pj = item.jugados !== undefined ? item.jugados : (item.partidos_jugados || item.pj || 0);
+        const pg = item.ganados !== undefined ? item.ganados : (item.pg || 0);
+        const pe = item.empatados !== undefined ? item.empatados : (item.pe || 0);
+        const pp = item.perdidos !== undefined ? item.perdidos : (item.pp || 0);
 
         const isMyTeam = (code && code === myCode) || name.toLowerCase().includes(window.currentFav?.nombreEquipo.toLowerCase());
 
@@ -731,7 +700,7 @@
       });
     }
 
-    // RENDERIZAR CALENDARIO FILTRADO POR JORNADA
+    // PARSER MEJORADO DE JORNADAS
     function changeJornada(delta) {
       window.currentJornada += delta;
       if (window.currentJornada < 1) window.currentJornada = 1;
@@ -744,48 +713,45 @@
       const container = document.getElementById('matches-container');
       container.innerHTML = '';
 
-      let allMatches = [];
+      let matchesFound = [];
 
-      function extractMatchesDeep(obj, currentJornadaNum = null) {
+      // 1. Intentar extracción directa por jornada
+      function extractMatchesForJornada(obj, parentJornada = null) {
         if (!obj || typeof obj !== 'object') return;
 
         if (Array.isArray(obj)) {
-          obj.forEach(item => extractMatchesDeep(item, currentJornadaNum));
+          obj.forEach(item => extractMatchesForJornada(item, parentJornada));
           return;
         }
 
-        // Si el objeto actual define una jornada contenedora
-        const jNum = obj.jornada || obj.num_jornada || obj.numero_jornada || currentJornadaNum;
+        const jNum = obj.jornada || obj.num_jornada || obj.numero_jornada || parentJornada;
 
-        // Comprobar si es un partido
         if (obj.nombre_equipo_local || obj.equipo_local || obj.local) {
-          allMatches.push({ ...obj, resolvedJornada: jNum });
+          if (!jNum || String(jNum) === String(window.currentJornada)) {
+            matchesFound.push(obj);
+          }
           return;
         }
 
         Object.keys(obj).forEach(k => {
+          // Si la clave del objeto es exactamente el número de jornada (ej: "1", "2")
+          const currentKeyJornada = String(k) === String(window.currentJornada) ? k : parentJornada;
           if (typeof obj[k] === 'object' && obj[k] !== null) {
-            extractMatchesDeep(obj[k], jNum);
+            extractMatchesForJornada(obj[k], currentKeyJornada);
           }
         });
       }
 
-      extractMatchesDeep(window.leagueData);
+      extractMatchesForJornada(window.leagueData);
 
-      // FILTRADO ESTRICTO POR LA JORNADA SELECCIONADA
-      const filteredMatches = allMatches.filter(m => {
-        const j = m.resolvedJornada || m.jornada || m.num_jornada;
-        return j ? String(j) === String(window.currentJornada) : false;
-      });
-
-      if (filteredMatches.length === 0) {
+      if (matchesFound.length === 0) {
         container.innerHTML = `<p style="text-align:center; padding:20px; font-size:0.85rem; color:#888;">No hay partidos registrados para la Jornada ${window.currentJornada}.</p>`;
         return;
       }
 
       const myCode = String(window.currentFav?.equipo || '');
 
-      filteredMatches.forEach(m => {
+      matchesFound.forEach(m => {
         const local = m.nombre_equipo_local || m.equipo_local || m.local || 'Local';
         const cLocal = String(m.cod_equipo_local || m.codigo_equipo_local || '');
         const visitante = m.nombre_equipo_visitante || m.equipo_visitante || m.visitante || 'Visitante';
