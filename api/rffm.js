@@ -1,32 +1,25 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET');
 
-  const { temporada = '22', competicion = '26737819', grupo = '26737824', jornada = '1', tipo = 'resultados' } = req.query;
-
-  let urlRFFM = '';
-  if (tipo === 'clasificacion') {
-    urlRFFM = `https://www.rffm.es/competicion/clasificaciones?temporada=${temporada}&tipojuego=1&competicion=${competicion}&grupo=${grupo}&jornada=${jornada}`;
-  } else {
-    urlRFFM = `https://www.rffm.es/competicion/resultados-y-jornadas?temporada=${temporada}&tipojuego=1&competicion=${competicion}&grupo=${grupo}&jornada=${jornada}`;
-  }
+  const targetUrl = 'https://www.rffm.es/competicion/resultados-y-jornadas?temporada=22&competicion=26737819&grupo=26737824&jornada=1&tipojuego=1';
 
   try {
-    const response = await fetch(urlRFFM, {
-      method: 'GET',
+    const response = await fetch(targetUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/605.1.15',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'es-ES,es;q=0.9',
-        'Cache-Control': 'no-cache'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       }
     });
 
-    const html = await response.text();
+    const text = await response.text();
     
-    // Si la respuesta es válida, la devolvemos
-    return res.status(200).send(html);
+    // Devolvemos el estado del servidor de la RFFM y la longitud del texto
+    return res.status(200).json({
+      status: response.status,
+      statusText: response.statusText,
+      longitudTexto: text.length,
+      contenidoInicio: text.substring(0, 300)
+    });
   } catch (error) {
-    return res.status(500).send(`Error en el servidor: ${error.message}`);
+    return res.status(500).json({ error: error.message });
   }
 }
