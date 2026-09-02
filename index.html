@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mi Fútbol Base</title>
+  <title>Mi Fútbol Base - Selector de Ligas</title>
   <style>
     :root {
       --bg: #0f172a;
@@ -47,7 +47,7 @@
 
     .form-group { margin-bottom: 14px; }
     .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
-    .form-group input { width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--surface-border); color: var(--text); border-radius: var(--radius); outline: none; }
+    .form-group select, .form-group input { width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--surface-border); color: var(--text); border-radius: var(--radius); outline: none; font-size: 0.9rem; }
 
     .subtabs { display: flex; background: var(--surface); border: 1px solid var(--surface-border); border-radius: var(--radius); padding: 4px; margin-bottom: 16px; }
     .subtab { flex: 1; padding: 10px; text-align: center; font-size: 0.85rem; font-weight: 600; border-radius: 8px; cursor: pointer; color: var(--text-muted); }
@@ -74,7 +74,7 @@
 <body>
 
   <header>
-    <h1 id="header-title">Mis Equipos</h1>
+    <h1 id="header-title">Mis Equipos y Ligas</h1>
   </header>
 
   <main>
@@ -82,44 +82,58 @@
     <section id="screen-home" class="screen active">
       <div class="hero-banner">
         <h2>⚽ Mi Fútbol Base</h2>
-        <p>Añade tus equipos pegando la URL de la RFFM.</p>
-        <button class="btn" onclick="showScreen('add', 'Añadir Nuevo Equipo')">➕ Añadir Nuevo Equipo</button>
+        <p>Selecciona la liga y categoría de tu equipo para consultar resultados.</p>
+        <button class="btn" onclick="showScreen('add', 'Añadir Nueva Liga')">➕ Seleccionar Nueva Liga</button>
       </div>
 
       <div id="my-teams-list"></div>
     </section>
 
-    <!-- 2. AÑADIR EQUIPO POR URL DE RFFM -->
+    <!-- 2. SELECTOR DE LIGA POR DESPLEGABLES -->
     <section id="screen-add" class="screen">
       <div class="card">
-        <h3 style="margin-bottom: 12px; font-size: 1rem;">Añadir por enlace de la RFFM</h3>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px;">
-          Pega el enlace de la página de resultados, calendario o clasificación de tu equipo en la RFFM:
-        </p>
+        <h3 style="margin-bottom: 12px; font-size: 1rem;">Configurar Liga a Seguir</h3>
 
         <div class="form-group">
-          <label>Enlace / URL de la RFFM</label>
-          <input type="text" id="url-input" placeholder="https://www.rffm.es/competicion/calendario?...">
+          <label>Categoría y División</label>
+          <select id="select-competicion">
+            <option value="26737819" data-name="Preferente Infantil">Preferente Infantil</option>
+            <option value="26737820" data-name="Primera Infantil">Primera Infantil</option>
+            <option value="26737821" data-name="Segunda Infantil">Segunda Infantil</option>
+            <option value="26737815" data-name="Preferente Alevín">Preferente Alevín</option>
+            <option value="26737816" data-name="Primera Alevín">Primera Alevín</option>
+          </select>
         </div>
 
         <div class="form-group">
-          <label>Nombre personalizado de tu equipo</label>
-          <input type="text" id="name-input" placeholder="Ej: Élida Olimpia Infantil A">
+          <label>Grupo</label>
+          <select id="select-grupo">
+            <option value="26737824">Grupo 5</option>
+            <option value="26737820">Grupo 1</option>
+            <option value="26737821">Grupo 2</option>
+            <option value="26737822">Grupo 3</option>
+            <option value="26737823">Grupo 4</option>
+          </select>
         </div>
 
         <div class="form-group">
-          <label>Texto para identificar tu equipo en los partidos (para resaltarlo)</label>
-          <input type="text" id="filter-input" placeholder="Ej: ELIDA">
+          <label>Nombre de tu equipo (Para resaltarlo en amarillo)</label>
+          <input type="text" id="input-filter" value="ELIDA" placeholder="Ej: ELIDA">
         </div>
 
-        <button class="btn" onclick="procesarUrlYGuardar()">⭐ Guardar Equipo</button>
+        <div class="form-group">
+          <label>Nombre personalizado para la tarjeta</label>
+          <input type="text" id="input-custom-name" value="Élida Olimpia Infantil A" placeholder="Ej: Élida Infantil A">
+        </div>
+
+        <button class="btn" onclick="guardarLigaSeleccionada()">⭐ Guardar Liga</button>
       </div>
     </section>
 
-    <!-- 3. DETALLE DE LIGA -->
+    <!-- 3. PANTALLA DETALLE DE LIGA -->
     <section id="screen-league" class="screen">
       <div class="subtabs">
-        <div class="subtab active" onclick="switchSubTab('calendar')">📅 Calendario</div>
+        <div class="subtab active">📅 Resultados / Jornada</div>
       </div>
 
       <div id="subtab-calendar">
@@ -130,7 +144,7 @@
         </div>
 
         <div id="matches-container">
-          <p style="text-align: center; color: var(--text-muted);">Cargando jornada...</p>
+          <p style="text-align: center; color: var(--text-muted);">Cargando partidos...</p>
         </div>
       </div>
     </section>
@@ -139,7 +153,17 @@
   <nav class="bottom-nav" id="bottom-nav"></nav>
 
   <script>
-    let misEquipos = JSON.parse(localStorage.getItem('misEquipos')) || [];
+    let misEquipos = JSON.parse(localStorage.getItem('misEquipos')) || [
+      {
+        nombre: 'Élida Olimpia Infantil A',
+        categoria: 'Preferente Infantil - Grupo 5',
+        temporada: '22',
+        competicion: '26737819',
+        grupo: '26737824',
+        filtroNombre: 'ELIDA'
+      }
+    ];
+
     let equipoActivo = null;
     let jornadaActual = 1;
 
@@ -153,8 +177,8 @@
       if (misEquipos.length === 0) {
         container.innerHTML = `
           <div style="text-align:center; color: var(--text-muted); padding: 30px 10px;">
-            <p style="font-size: 1rem; margin-bottom: 8px;">No tienes ningún equipo guardado.</p>
-            <p style="font-size: 0.8rem;">Pulsa en <strong>"➕ Añadir Nuevo Equipo"</strong> para pegar el enlace de la RFFM.</p>
+            <p style="font-size: 1rem; margin-bottom: 8px;">No tienes ninguna liga guardada.</p>
+            <p style="font-size: 0.8rem;">Pulsa en <strong>"➕ Seleccionar Nueva Liga"</strong> para empezar.</p>
           </div>`;
         return;
       }
@@ -167,7 +191,7 @@
         card.innerHTML = `
           <div class="team-info">
             <h3>${eq.nombre}</h3>
-            <p>Competición: ${eq.competicion} | Grupo: ${eq.grupo}</p>
+            <p>${eq.categoria}</p>
           </div>
           <button class="btn-danger" onclick="event.stopPropagation(); eliminarEquipo(${index});">🗑️</button>
         `;
@@ -192,56 +216,36 @@
       } else {
         nav.innerHTML = `
           <div class="nav-item ${screenId === 'home' ? 'active' : ''}" onclick="showScreen('home', 'Mis Equipos')">🏠 Inicio</div>
-          <div class="nav-item ${screenId === 'add' ? 'active' : ''}" onclick="showScreen('add', 'Añadir Equipo')">➕ Añadir</div>
+          <div class="nav-item ${screenId === 'add' ? 'active' : ''}" onclick="showScreen('add', 'Seleccionar Liga')">➕ Añadir Liga</div>
         `;
       }
     }
 
-    // Extrae automáticamente los parámetros del enlace pegado por el usuario
-    function procesarUrlYGuardar() {
-      const urlText = document.getElementById('url-input').value.trim();
-      const nombreCustom = document.getElementById('name-input').value.trim() || "Mi Equipo Infantil";
-      const filtroText = document.getElementById('filter-input').value.trim().toUpperCase() || "ELIDA";
+    function guardarLigaSeleccionada() {
+      const compSelect = document.getElementById('select-competicion');
+      const grupoSelect = document.getElementById('select-grupo');
+      
+      const compId = compSelect.value;
+      const compName = compSelect.options[compSelect.selectedIndex].getAttribute('data-name');
+      const grupoId = grupoSelect.value;
+      const grupoName = grupoSelect.options[grupoSelect.selectedIndex].text;
 
-      if (!urlText.includes('competicion') || !urlText.includes('grupo')) {
-        alert('Por favor pega una URL válida de la RFFM que contenga "competicion" y "grupo".');
-        return;
-      }
+      const filtro = document.getElementById('input-filter').value.trim().toUpperCase() || 'ELIDA';
+      const customName = document.getElementById('input-custom-name').value.trim() || `${compName} - ${grupoName}`;
 
-      try {
-        const urlObj = new URL(urlText);
-        const params = new URLSearchParams(urlObj.search);
+      const nuevaLiga = {
+        nombre: customName,
+        categoria: `${compName} - ${grupoName}`,
+        temporada: '22',
+        competicion: compId,
+        grupo: grupoId,
+        filtroNombre: filtro
+      };
 
-        const temporada = params.get('temporada') || '22';
-        const competicion = params.get('competicion');
-        const grupo = params.get('grupo');
-
-        if (!competicion || !grupo) {
-          alert('No se pudieron extraer los códigos del enlace.');
-          return;
-        }
-
-        const nuevoEquipo = {
-          nombre: nombreCustom,
-          temporada: temporada,
-          competicion: competicion,
-          grupo: grupo,
-          filtroNombre: filtroText
-        };
-
-        misEquipos.push(nuevoEquipo);
-        localStorage.setItem('misEquipos', JSON.stringify(misEquipos));
-        renderMyTeams();
-        
-        // Limpiar campos y volver a inicio
-        document.getElementById('url-input').value = '';
-        document.getElementById('name-input').value = '';
-        showScreen('home', 'Mis Equipos');
-        alert('¡Equipo guardado con éxito!');
-
-      } catch (e) {
-        alert('URL no válida. Asegúrate de copiar el enlace completo desde el navegador.');
-      }
+      misEquipos.push(nuevaLiga);
+      localStorage.setItem('misEquipos', JSON.stringify(misEquipos));
+      renderMyTeams();
+      showScreen('home', 'Mis Equipos');
     }
 
     function abrirLiga(equipo) {
@@ -259,44 +263,61 @@
       }
     }
 
+    // Consulta de datos analizando la estructura SSR / HTML de la RFFM
     async function cargarDatosRFFM() {
       if (!equipoActivo) return;
 
-      const matchesContainer = document.getElementById('matches-container');
-      matchesContainer.innerHTML = '<p style="text-align:center; color: var(--text-muted); padding: 20px;">Cargando jornada...</p>';
+      const container = document.getElementById('matches-container');
+      container.innerHTML = '<p style="text-align:center; color: var(--text-muted); padding: 20px;">Cargando partidos de la RFFM...</p>';
 
       const targetUrl = `https://www.rffm.es/competicion/resultados-y-jornadas?temporada=${equipoActivo.temporada}&competicion=${equipoActivo.competicion}&grupo=${equipoActivo.grupo}&jornada=${jornadaActual}&tipojuego=1`;
-      
-      // Usamos corsproxy.io por ser más rápido para Next.js
       const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
 
       try {
         const res = await fetch(proxyUrl);
-        const htmlText = await res.text();
+        const html = await res.text();
+        
         const parser = new DOMParser();
-        const doc = parser.parseFromString(htmlText, 'text/html');
+        const doc = parser.parseFromString(html, 'text/html');
 
-        const filas = doc.querySelectorAll('tr');
+        // Extraer datos embebidos de Next.js si están disponibles
+        const nextDataScript = doc.getElementById('__NEXT_DATA__');
+        
+        if (nextDataScript) {
+          const jsonData = JSON.parse(nextDataScript.innerText);
+          console.log("Datos de la RFFM recibidos:", jsonData);
+        }
 
+        // Parseo visual por bloques/filas
+        const filas = doc.querySelectorAll('tr, .row, [class*="partido"]');
+        
         if (filas.length > 0) {
-          matchesContainer.innerHTML = '';
-          filas.forEach(fila => {
-            const textoFila = fila.innerText.trim();
-            if (textoFila.length > 10) {
+          container.innerHTML = '';
+          let creados = 0;
+
+          filas.forEach(f => {
+            const txt = f.innerText.trim().replace(/\s+/g, ' ');
+            if (txt.length > 15 && (txt.includes('-') || txt.includes('vs') || txt.includes(':'))) {
+              creados++;
+              const esMiEquipo = txt.toUpperCase().includes(equipoActivo.filtroNombre);
+              
               const card = document.createElement('div');
-              const esMiEquipo = textoFila.toUpperCase().includes(equipoActivo.filtroNombre);
               card.className = `card match-card ${esMiEquipo ? 'is-my-team' : ''}`;
-              card.innerHTML = `<div style="font-size:0.85rem;">${textoFila}</div>`;
-              matchesContainer.appendChild(card);
+              card.innerHTML = `<div style="font-size: 0.88rem; line-height: 1.4;">${txt}</div>`;
+              container.appendChild(card);
             }
           });
+
+          if (creados === 0) {
+            container.innerHTML = `<p style="text-align:center; color: var(--text-muted); padding: 20px;">Jornada ${jornadaActual}: Consulta realizada correctamente pero sin partidos programados.</p>`;
+          }
         } else {
-          matchesContainer.innerHTML = '<p style="text-align:center; color: var(--text-muted); padding: 20px;">No se encontraron partidos para esta jornada.</p>';
+          container.innerHTML = '<p style="text-align:center; color: var(--text-muted); padding: 20px;">No se encontraron partidos para esta jornada.</p>';
         }
 
       } catch (err) {
         console.error(err);
-        matchesContainer.innerHTML = '<p style="text-align:center; color: var(--danger); padding: 20px;">Error al conectar con la RFFM. Comprueba tu conexión.</p>';
+        container.innerHTML = '<p style="text-align:center; color: var(--danger); padding: 20px;">Error al conectar con la RFFM. Inténtalo de nuevo.</p>';
       }
     }
   </script>
