@@ -3,13 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RFFM Match App</title>
+  <title>Infantil Elida MatchApp</title>
   <style>
     :root {
       --primary: #004d98;
+      --secondary: #ed1c24;
       --bg: #f4f6f9;
       --card-bg: #ffffff;
       --text: #333333;
+      --highlight: #e8f0fe;
     }
 
     body {
@@ -17,7 +19,7 @@
       background-color: var(--bg);
       color: var(--text);
       margin: 0;
-      padding: 16px;
+      padding: 12px;
     }
 
     .container {
@@ -28,16 +30,16 @@
     h1 {
       text-align: center;
       color: var(--primary);
-      font-size: 1.5rem;
-      margin-bottom: 20px;
+      font-size: 1.4rem;
+      margin: 10px 0 20px 0;
     }
 
     .card {
       background: var(--card-bg);
       padding: 16px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      margin-bottom: 16px;
     }
 
     .form-group {
@@ -49,16 +51,17 @@
       font-size: 0.85rem;
       font-weight: bold;
       margin-bottom: 4px;
-      color: #666;
+      color: #555;
     }
 
-    select {
+    select, button {
       width: 100%;
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 6px;
       font-size: 0.95rem;
       background-color: #fff;
+      box-sizing: border-box;
     }
 
     select:disabled {
@@ -66,235 +69,483 @@
       cursor: not-allowed;
     }
 
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .btn-primary:disabled {
+      background-color: #a0b2c6;
+    }
+
     .status-msg {
       font-size: 0.85rem;
-      color: #004d98;
+      color: var(--primary);
       margin-top: 8px;
       text-align: center;
+      font-weight: 500;
+    }
+
+    /* Favoritos list */
+    .fav-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: #fafafa;
+    }
+
+    .fav-info {
+      flex-grow: 1;
+      cursor: pointer;
+    }
+
+    .fav-title {
+      font-weight: bold;
+      color: var(--primary);
+      font-size: 0.95rem;
+    }
+
+    .fav-sub {
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    .btn-del {
+      background: transparent;
+      border: none;
+      color: var(--secondary);
+      font-size: 1.2rem;
+      cursor: pointer;
+      width: auto;
+      padding: 0 8px;
+    }
+
+    /* Pestañas */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 12px;
+      background: #e0e0e0;
+      padding: 4px;
+      border-radius: 8px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 8px 4px;
+      border: none;
+      background: transparent;
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: #555;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+
+    .tab-btn.active {
+      background: var(--card-bg);
+      color: var(--primary);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Vista de Partidos / Tarjetas */
+    .match-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #fff;
+    }
+
+    .match-card.highlight {
+      background-color: var(--highlight);
+      border-color: #b3d4fc;
+    }
+
+    .match-header {
+      font-size: 0.75rem;
+      color: #666;
+      margin-bottom: 6px;
+      text-align: center;
+      border-bottom: 1px solid #edf2f7;
+      padding-bottom: 4px;
+    }
+
+    .match-teams {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+
+    .team-name {
+      flex: 1;
+      text-align: center;
+    }
+
+    .score {
+      background: #333;
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      margin: 0 8px;
+    }
+
+    /* Clasificación Table */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    th, td {
+      padding: 6px 4px;
+      text-align: center;
+      border-bottom: 1px solid #edf2f7;
+    }
+
+    th {
+      background-color: #f8fafc;
+      color: #475569;
+    }
+
+    tr.highlight-team {
+      background-color: var(--highlight);
+      font-weight: bold;
+    }
+
+    .nav-jornada {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .nav-jornada button {
+      width: auto;
+      padding: 6px 12px;
+      font-size: 0.85rem;
     }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h1>RFFM Match App</h1>
+    <h1>Infantil Elida MatchApp</h1>
 
-    <div class="card">
-      <!-- 1. Temporada -->
-      <div class="form-group">
-        <label for="select-season">Temporada</label>
-        <select id="select-season" onchange="loadCompetitions()">
-          <option value="">Cargando temporadas...</option>
-        </select>
+    <!-- PANTALLA PRINCIPAL: FAVORITOS Y SELECTOR -->
+    <div id="view-main">
+      
+      <!-- Lista de Equipos Guardados -->
+      <div class="card">
+        <h2 style="font-size:1.1rem; margin-top:0; color:var(--primary);">Mis Equipos</h2>
+        <div id="favs-container">
+          <!-- Se puebla dinámicamente -->
+        </div>
       </div>
 
-      <!-- 2. Tipo de Juego -->
-      <div class="form-group">
-        <label for="select-gametype">Modalidad</label>
-        <select id="select-gametype" onchange="loadCompetitions()" disabled>
-          <option value="1">Fútbol 11</option>
-          <option value="2">Fútbol 7</option>
-          <option value="3">Fútbol Sala</option>
-        </select>
+      <!-- Formulario para agregar nuevo equipo -->
+      <div class="card">
+        <h2 style="font-size:1rem; margin-top:0; color:#555;">Buscar y Añadir Equipo</h2>
+        
+        <div class="form-group">
+          <label for="select-season">Temporada</label>
+          <select id="select-season" onchange="loadCompetitions()">
+            <option value="">Cargando temporadas...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="select-gametype">Modalidad</label>
+          <select id="select-gametype" onchange="loadCompetitions()" disabled>
+            <option value="1">Fútbol 11</option>
+            <option value="2">Fútbol 7</option>
+            <option value="3">Fútbol Sala</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="select-competition">Competición</label>
+          <select id="select-competition" onchange="loadGroups()" disabled>
+            <option value="">Selecciona Competición</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="select-group">Grupo</label>
+          <select id="select-group" onchange="loadTeams()" disabled>
+            <option value="">Selecciona Grupo</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="select-team">Equipo</label>
+          <select id="select-team" disabled onchange="checkAddButton()">
+            <option value="">Selecciona tu Equipo</option>
+          </select>
+        </div>
+
+        <button id="btn-add" class="btn-primary" disabled onclick="addFavorite()">Añadir a Mis Equipos</button>
+
+        <div id="status" class="status-msg"></div>
       </div>
 
-      <!-- 3. Competición -->
-      <div class="form-group">
-        <label for="select-competition">Competición</label>
-        <select id="select-competition" onchange="loadGroups()" disabled>
-          <option value="">Selecciona Competición</option>
-        </select>
-      </div>
-
-      <!-- 4. Grupo -->
-      <div class="form-group">
-        <label for="select-group">Grupo</label>
-        <select id="select-group" onchange="loadTeams()" disabled>
-          <option value="">Selecciona Grupo</option>
-        </select>
-      </div>
-
-      <!-- 5. Equipo -->
-      <div class="form-group">
-        <label for="select-team">Equipo</label>
-        <select id="select-team" disabled>
-          <option value="">Selecciona tu Equipo</option>
-        </select>
-      </div>
-
-      <div id="status" class="status-msg"></div>
     </div>
+
+    <!-- PANTALLA DE DETALLE DE LIGA -->
+    <div id="view-league" style="display: none;">
+      
+      <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('home')">🏠 Inicio</button>
+        <button class="tab-btn" onclick="showTab('standings')">🏆 Clasificación</button>
+        <button class="tab-btn" onclick="showTab('calendar')">📅 Jornadas</button>
+      </div>
+
+      <div class="card" id="league-title-card">
+        <h2 id="league-team-title" style="margin:0; font-size:1.1rem; color:var(--primary);"></h2>
+        <div id="league-sub-title" style="font-size:0.8rem; color:#666; margin-top:2px;"></div>
+      </div>
+
+      <!-- VISTA CLASIFICACIÓN -->
+      <div id="tab-standings" class="card" style="display:none;">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Pos</th>
+                <th style="text-align:left;">Equipo</th>
+                <th>Pts</th>
+                <th>PJ</th>
+                <th>PG</th>
+                <th>PE</th>
+                <th>PP</th>
+              </tr>
+            </thead>
+            <tbody id="standings-body">
+              <!-- Se puebla dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VISTA CALENDARIO / JORNADAS -->
+      <div id="tab-calendar" class="card" style="display:none;">
+        <div class="nav-jornada">
+          <button class="btn-primary" onclick="changeJornada(-1)">◀ Anterior</button>
+          <span id="jornada-label" style="font-weight:bold; font-size:0.9rem;">Jornada 1</span>
+          <button class="btn-primary" onclick="changeJornada(1)">Siguiente ▶</button>
+        </div>
+
+        <div id="matches-container">
+          <!-- Se puebla dinámicamente -->
+        </div>
+      </div>
+
+    </div>
+
   </div>
 
   <script>
-    // Variable global para almacenar todo el dataset de la liga
+    // Variables de estado global
     window.leagueData = null;
+    window.currentFav = null;
+    window.currentJornada = 1;
+    window.maxJornadas = 34;
 
-    // Función auxiliar centralizada para peticiones al proxy serverless
+    // Petición al proxy serverless
     async function apiFetch(endpoint, params = {}) {
       const query = new URLSearchParams({ endpoint, ...params }).toString();
       const response = await fetch(`/api/rffm?${query}`);
-      if (!response.ok) {
-        throw new Error(`HTTP Error: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
       return await response.json();
     }
 
-    // Inicialización al cargar la página
     document.addEventListener('DOMContentLoaded', () => {
       loadSeasons();
+      renderFavorites();
     });
 
-    // 1. CARGAR TEMPORADAS
+    // SISTEMA DE FAVORITOS (localStorage)
+    function getFavorites() {
+      return JSON.parse(localStorage.getItem('rffm_favs') || '[]');
+    }
+
+    function saveFavorites(favs) {
+      localStorage.setItem('rffm_favs', JSON.stringify(favs));
+    }
+
+    function renderFavorites() {
+      const container = document.getElementById('favs-container');
+      const favs = getFavorites();
+
+      if (favs.length === 0) {
+        container.innerHTML = '<p style="font-size:0.85rem; color:#888; text-align:center;">No tienes equipos guardados.</p>';
+        return;
+      }
+
+      container.innerHTML = '';
+      favs.forEach((item, index) => {
+        container.innerHTML += `
+          <div class="fav-item">
+            <div class="fav-info" onclick="openLeague(${index})">
+              <div class="fav-title">${item.nombreEquipo}</div>
+              <div class="fav-sub">${item.nombreCompeticion} - ${item.nombreGrupo}</div>
+            </div>
+            <button class="btn-del" onclick="deleteFavorite(${index})">✕</button>
+          </div>
+        `;
+      });
+    }
+
+    function addFavorite() {
+      const selSeason = document.getElementById('select-season');
+      const selGame = document.getElementById('select-gametype');
+      const selComp = document.getElementById('select-competition');
+      const selGroup = document.getElementById('select-group');
+      const selTeam = document.getElementById('select-team');
+
+      if (!selTeam.value) return;
+
+      const newFav = {
+        temporada: selSeason.value,
+        tipojuego: selGame.value,
+        competicion: selComp.value,
+        grupo: selGroup.value,
+        equipo: selTeam.value,
+        nombreTemporada: selSeason.options[selSeason.selectedIndex].text,
+        nombreCompeticion: selComp.options[selComp.selectedIndex].text,
+        nombreGrupo: selGroup.options[selGroup.selectedIndex].text,
+        nombreEquipo: selTeam.options[selTeam.selectedIndex].text
+      };
+
+      const favs = getFavorites();
+      favs.push(newFav);
+      saveFavorites(favs);
+      renderFavorites();
+
+      document.getElementById('status').innerText = "¡Equipo añadido con éxito!";
+    }
+
+    function deleteFavorite(index) {
+      const favs = getFavorites();
+      favs.splice(index, 1);
+      saveFavorites(favs);
+      renderFavorites();
+    }
+
+    function checkAddButton() {
+      const selTeam = document.getElementById('select-team');
+      document.getElementById('btn-add').disabled = !selTeam.value;
+    }
+
+    // DESPLEGABLES EN CASCADA
     async function loadSeasons() {
       const select = document.getElementById('select-season');
-      const selectGameType = document.getElementById('select-gametype');
-      
       try {
         const seasons = await apiFetch('seasons');
         select.innerHTML = '<option value="">Selecciona Temporada</option>';
-        
         if (Array.isArray(seasons)) {
           seasons.forEach(s => {
             const code = s.cod_temporada || s.codigo || s.id;
             const name = s.nombre || s.nombre_temporada || s.temporada;
-            if (code && name) {
-              select.innerHTML += `<option value="${code}">${name}</option>`;
-            }
+            if (code && name) select.innerHTML += `<option value="${code}">${name}</option>`;
           });
         }
-        
-        // Habilitar selección de tipo de juego
-        selectGameType.disabled = false;
-
+        document.getElementById('select-gametype').disabled = false;
       } catch (e) {
-        console.error("Error al cargar temporadas:", e);
         select.innerHTML = '<option value="">Error al cargar temporadas</option>';
       }
     }
 
-    // 2 y 3. CARGAR COMPETICIONES
     async function loadCompetitions() {
       const temporada = document.getElementById('select-season').value;
       const tipojuego = document.getElementById('select-gametype').value;
-
       const selectComp = document.getElementById('select-competition');
-      const selectGroup = document.getElementById('select-group');
-      const selectTeam = document.getElementById('select-team');
 
-      // Resetear desplegables dependientes
       selectComp.innerHTML = '<option value="">Cargando competiciones...</option>';
       selectComp.disabled = true;
-      selectGroup.innerHTML = '<option value="">Selecciona Grupo</option>';
-      selectGroup.disabled = true;
-      selectTeam.innerHTML = '<option value="">Selecciona tu Equipo</option>';
-      selectTeam.disabled = true;
 
       if (!temporada || !tipojuego) return;
 
       try {
         const comps = await apiFetch('competitions', { temporada, tipojuego });
         selectComp.disabled = false;
-
-        if (!Array.isArray(comps) || comps.length === 0) {
-          selectComp.innerHTML = '<option value="">Sin competiciones disponibles</option>';
-          return;
-        }
-
         selectComp.innerHTML = '<option value="">Selecciona Competición</option>';
-        comps.forEach(c => {
-          const code = c.codigo || c.cod_competicion;
-          const name = c.nombre || c.nombre_competicion;
-          if (code && name) {
-            selectComp.innerHTML += `<option value="${code}">${name}</option>`;
-          }
-        });
-
+        if (Array.isArray(comps)) {
+          comps.forEach(c => {
+            const code = c.codigo || c.cod_competicion;
+            const name = c.nombre || c.nombre_competicion;
+            if (code && name) selectComp.innerHTML += `<option value="${code}">${name}</option>`;
+          });
+        }
       } catch (e) {
-        console.error("Error al cargar competiciones:", e);
-        selectComp.innerHTML = '<option value="">Error al cargar competiciones</option>';
+        selectComp.innerHTML = '<option value="">Error al cargar</option>';
       }
     }
 
-    // 4. CARGAR GRUPOS
     async function loadGroups() {
       const competicion = document.getElementById('select-competition').value;
-
       const selectGroup = document.getElementById('select-group');
-      const selectTeam = document.getElementById('select-team');
 
-      // Resetear desplegables dependientes
       selectGroup.innerHTML = '<option value="">Cargando grupos...</option>';
       selectGroup.disabled = true;
-      selectTeam.innerHTML = '<option value="">Selecciona tu Equipo</option>';
-      selectTeam.disabled = true;
 
       if (!competicion) return;
 
       try {
         const groups = await apiFetch('groups', { competicion });
         selectGroup.disabled = false;
-
-        if (!Array.isArray(groups) || groups.length === 0) {
-          selectGroup.innerHTML = '<option value="">Sin grupos disponibles</option>';
-          return;
-        }
-
         selectGroup.innerHTML = '<option value="">Selecciona Grupo</option>';
-        groups.forEach(g => {
-          const code = g.codigo || g.cod_grupo;
-          const name = g.nombre || g.nombre_grupo;
-          if (code && name) {
-            selectGroup.innerHTML += `<option value="${code}">${name}</option>`;
-          }
-        });
-
+        if (Array.isArray(groups)) {
+          groups.forEach(g => {
+            const code = g.codigo || g.cod_grupo;
+            const name = g.nombre || g.nombre_grupo;
+            if (code && name) selectGroup.innerHTML += `<option value="${code}">${name}</option>`;
+          });
+        }
       } catch (e) {
-        console.error("Error al cargar grupos:", e);
-        selectGroup.innerHTML = '<option value="">Error al cargar grupos</option>';
+        selectGroup.innerHTML = '<option value="">Error al cargar</option>';
       }
     }
 
-    // 5. CARGAR DATASET COMPLETO Y EQUIPOS AL SELECCIONAR GRUPO
     async function loadTeams() {
       const temporada = document.getElementById('select-season').value;
       const tipojuego = document.getElementById('select-gametype').value;
       const competicion = document.getElementById('select-competition').value;
       const grupo = document.getElementById('select-group').value;
-
-      if (!grupo) return;
-
       const select = document.getElementById('select-team');
       const statusDiv = document.getElementById('status');
 
+      if (!grupo) return;
+
       select.disabled = false;
       select.innerHTML = '<option value="">Descargando liga y equipos...</option>';
-      statusDiv.innerText = "Descargando datos del calendario...";
+      statusDiv.innerText = "Descargando datos de la RFFM...";
 
       try {
-        // 1. Descargar dataset completo sin parámetro de jornada
-        const resData = await apiFetch('calendario-next', {
-          temporada,
-          tipojuego,
-          competicion,
-          grupo
-        });
-
-        // 2. Guardar dataset global en memoria
+        const resData = await apiFetch('calendario-next', { temporada, tipojuego, competicion, grupo });
         window.leagueData = resData?.pageProps || resData || {};
         
         const teamMap = new Map();
 
-        // 3. Algoritmo de escaneo profundo (Deep Extraction)
         function extractTeamsDeep(obj) {
           if (!obj || typeof obj !== 'object') return;
+          if (Array.isArray(obj)) { obj.forEach(item => extractTeamsDeep(item)); return; }
 
-          if (Array.isArray(obj)) {
-            obj.forEach(item => extractTeamsDeep(item));
-            return;
-          }
-
-          // Escanear datos de partido (Local / Visitante)
           const c1 = obj.cod_equipo_local || obj.codigo_equipo_local || obj.id_equipo_local || obj.cod_local;
           const n1 = obj.nombre_equipo_local || obj.equipo_local || obj.local;
           const c2 = obj.cod_equipo_visitante || obj.codigo_equipo_visitante || obj.id_equipo_visitante || obj.cod_visitante;
@@ -303,49 +554,211 @@
           if (c1 && n1) teamMap.set(String(c1), String(n1).trim());
           if (c2 && n2) teamMap.set(String(c2), String(n2).trim());
 
-          // Escanear lista directa de equipos o clasificación
-          const cDirect = obj.cod_equipo || obj.codigo_equipo || obj.id_equipo || obj.cod_club;
-          const nDirect = obj.nombre_equipo || obj.equipo || obj.nombre_club || obj.nombre;
+          const cDirect = obj.cod_equipo || obj.codigo_equipo || obj.id_equipo;
+          const nDirect = obj.nombre_equipo || obj.equipo;
 
           if (cDirect && nDirect && typeof nDirect === 'string' && !['Home', 'Away'].includes(nDirect)) {
             teamMap.set(String(cDirect), String(nDirect).trim());
           }
 
-          // Recorrido recursivo de propiedades
-          Object.keys(obj).forEach(key => {
-            if (typeof obj[key] === 'object' && obj[key] !== null) {
-              extractTeamsDeep(obj[key]);
-            }
+          Object.keys(obj).forEach(k => {
+            if (typeof obj[k] === 'object' && obj[k] !== null) extractTeamsDeep(obj[k]);
           });
         }
 
-        // 4. Ejecutar barrido
         extractTeamsDeep(window.leagueData);
 
-        // 5. Validar extracción
         if (teamMap.size === 0) {
-          console.warn("Dataset descargado pero sin equipos extraídos:", window.leagueData);
           select.innerHTML = '<option value="">Sin equipos detectados</option>';
-          statusDiv.innerText = "No se encontraron equipos en el grupo.";
+          statusDiv.innerText = "No se detectaron equipos.";
           return;
         }
 
-        // 6. Poblar selector de equipos ordenado alfabéticamente
         select.innerHTML = '<option value="">Selecciona tu Equipo</option>';
-        
         const sortedTeams = Array.from(teamMap.entries()).sort((a, b) => a[1].localeCompare(b[1]));
         sortedTeams.forEach(([codigo, nombre]) => {
           select.innerHTML += `<option value="${codigo}">${nombre}</option>`;
         });
 
-        statusDiv.innerText = `Liga cargada. ${sortedTeams.length} equipos listos.`;
-        console.log("Dataset cargado correctamente:", window.leagueData);
+        statusDiv.innerText = `Liga cargada: ${sortedTeams.length} equipos.`;
 
       } catch (e) {
-        console.error("Error al descargar la liga o extraer equipos:", e);
         select.innerHTML = '<option value="">Error al cargar equipos</option>';
-        statusDiv.innerText = "Error en la conexión con la RFFM.";
+        statusDiv.innerText = "Error al descargar datos.";
       }
+    }
+
+    // ABRIR VISTA DE DETALLE
+    async function openLeague(favIndex) {
+      const favs = getFavorites();
+      const fav = favs[favIndex];
+      if (!fav) return;
+
+      window.currentFav = fav;
+      document.getElementById('view-main').style.display = 'none';
+      document.getElementById('view-league').style.display = 'block';
+
+      document.getElementById('league-team-title').innerText = fav.nombreEquipo;
+      document.getElementById('league-sub-title').innerText = `${fav.nombreCompeticion} - ${fav.nombreGrupo}`;
+
+      // Descargar datos si no están cargados
+      try {
+        const resData = await apiFetch('calendario-next', {
+          temporada: fav.temporada,
+          tipojuego: fav.tipojuego,
+          competicion: fav.competicion,
+          grupo: fav.grupo
+        });
+        window.leagueData = resData?.pageProps || resData || {};
+        showTab('calendar');
+      } catch (e) {
+        alert("Error al cargar la liga seleccionada");
+      }
+    }
+
+    // NAVEGACIÓN POR PESTAÑAS
+    function showTab(tabName) {
+      if (tabName === 'home') {
+        document.getElementById('view-league').style.display = 'none';
+        document.getElementById('view-main').style.display = 'block';
+        return;
+      }
+
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('tab-standings').style.display = 'none';
+      document.getElementById('tab-calendar').style.display = 'none';
+
+      if (tabName === 'standings') {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('tab-standings').style.display = 'block';
+        renderStandings();
+      } else if (tabName === 'calendar') {
+        document.querySelectorAll('.tab-btn')[2].classList.add('active');
+        document.getElementById('tab-calendar').style.display = 'block';
+        renderMatches();
+      }
+    }
+
+    // RENDERIZAR CLASIFICACIÓN
+    function renderStandings() {
+      const tbody = document.getElementById('standings-body');
+      tbody.innerHTML = '';
+
+      let list = [];
+      function findStandings(obj) {
+        if (!obj || typeof obj !== 'object') return;
+        if (Array.isArray(obj.clasificacion)) { list = obj.clasificacion; return; }
+        Object.keys(obj).forEach(k => {
+          if (!list.length && typeof obj[k] === 'object') findStandings(obj[k]);
+        });
+      }
+
+      findStandings(window.leagueData);
+
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7">Clasificación no disponible.</td></tr>';
+        return;
+      }
+
+      const myCode = window.currentFav?.equipo;
+
+      list.forEach((item, index) => {
+        const pos = item.posicion || item.puesto || (index + 1);
+        const name = item.nombre_equipo || item.equipo || 'Equipo';
+        const code = String(item.cod_equipo || item.codigo_equipo || '');
+        const pts = item.puntos || 0;
+        const pj = item.jugados || item.partidos_jugados || 0;
+        const pg = item.ganados || 0;
+        const pe = item.empatados || 0;
+        const pp = item.perdidos || 0;
+
+        const isMyTeam = code === myCode || name.toLowerCase().includes(window.currentFav?.nombreEquipo.toLowerCase());
+
+        tbody.innerHTML += `
+          <tr class="${isMyTeam ? 'highlight-team' : ''}">
+            <td>${pos}</td>
+            <td style="text-align:left;">${name}</td>
+            <td><strong>${pts}</strong></td>
+            <td>${pj}</td>
+            <td>${pg}</td>
+            <td>${pe}</td>
+            <td>${pp}</td>
+          </tr>
+        `;
+      });
+    }
+
+    // RENDERIZAR JORNADAS
+    function changeJornada(delta) {
+      window.currentJornada += delta;
+      if (window.currentJornada < 1) window.currentJornada = 1;
+      if (window.currentJornada > window.maxJornadas) window.currentJornada = window.maxJornadas;
+      renderMatches();
+    }
+
+    function renderMatches() {
+      document.getElementById('jornada-label').innerText = `Jornada ${window.currentJornada}`;
+      const container = document.getElementById('matches-container');
+      container.innerHTML = '';
+
+      let allMatches = [];
+      function findMatches(obj) {
+        if (!obj || typeof obj !== 'object') return;
+        if (Array.isArray(obj)) {
+          obj.forEach(item => {
+            if (item.equipo_local || item.nombre_equipo_local) allMatches.push(item);
+            else findMatches(item);
+          });
+          return;
+        }
+        Object.keys(obj).forEach(k => {
+          if (typeof obj[k] === 'object') findMatches(obj[k]);
+        });
+      }
+
+      findMatches(window.leagueData);
+
+      // Filtrar partidos de la jornada actual si viene la propiedad
+      const currentMatches = allMatches.filter(m => {
+        const j = m.jornada || m.num_jornada || m.numero_jornada;
+        return j ? String(j) === String(window.currentJornada) : true;
+      });
+
+      if (currentMatches.length === 0) {
+        container.innerHTML = '<p style="text-align:center; font-size:0.85rem; color:#888;">No hay partidos cargados para esta jornada.</p>';
+        return;
+      }
+
+      const myCode = window.currentFav?.equipo;
+
+      currentMatches.forEach(m => {
+        const local = m.nombre_equipo_local || m.equipo_local || 'Local';
+        const cLocal = String(m.cod_equipo_local || m.codigo_equipo_local || '');
+        const visitante = m.nombre_equipo_visitante || m.equipo_visitante || 'Visitante';
+        const cVisitante = String(m.cod_equipo_visitante || m.codigo_equipo_visitante || '');
+
+        const gL = m.goles_local !== undefined && m.goles_local !== null ? m.goles_local : '-';
+        const gV = m.goles_visitante !== undefined && m.goles_visitante !== null ? m.goles_visitante : '-';
+
+        const fecha = m.fecha || m.fecha_partido || '';
+        const hora = m.hora || m.hora_partido || '';
+        const campo = m.campo || m.nombre_campo || '';
+
+        const isMyMatch = cLocal === myCode || cVisitante === myCode || 
+                          local.toLowerCase().includes(window.currentFav?.nombreEquipo.toLowerCase()) || 
+                          visitante.toLowerCase().includes(window.currentFav?.nombreEquipo.toLowerCase());
+
+        container.innerHTML += `
+          <div class="match-card ${isMyMatch ? 'highlight' : ''}">
+            <div class="match-header">${fecha} ${hora} ${campo ? '| ' + campo : ''}</div>
+            <div class="match-teams">
+              <span class="team-name">${local}</span>
+              <span class="score">${gL} - ${gV}</span>
+              <span class="team-name">${visitante}</span>
+            </div>
+          </div>
+        `;
+      });
     }
   </script>
 </body>
