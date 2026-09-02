@@ -191,17 +191,27 @@
       select.innerHTML = '<option value="">Cargando...</option>';
       try {
         const seasons = await apiFetch('seasons');
+        console.log("Respuesta de temporadas recibida:", seasons); // Para depuración
+
+        if (!Array.isArray(seasons) || seasons.length === 0) {
+          select.innerHTML = '<option value="">Sin temporadas disponibles</option>';
+          return;
+        }
+
         select.innerHTML = '<option value="">Selecciona Temporada</option>';
         seasons.forEach(s => {
-          const code = s.cod_temporada || s.codigo || s.id;
-          const name = s.nombre || s.nombre_temporada;
-          if (code && name) {
+          // Buscamos el código en cualquier clave posible que mande la RFFM
+          const code = s.cod_temporada || s.codigo || s.id || s.temporada || s.cod;
+          // Buscamos el nombre visual en cualquier clave posible
+          const name = s.nombre || s.nombre_temporada || s.denominacion || s.title || code;
+          
+          if (code) {
             select.innerHTML += `<option value="${code}">${name}</option>`;
           }
         });
       } catch (e) {
-        console.error("Error cargando temporadas", e);
-        select.innerHTML = '<option value="">Error al cargar</option>';
+        console.error("Error cargando temporadas:", e);
+        select.innerHTML = '<option value="">Error al cargar (revisa conexión)</option>';
       }
     }
 
@@ -229,6 +239,12 @@
 
       try {
         const comps = await apiFetch('competitions', { temporada, tipojuego });
+        
+        if (!Array.isArray(comps) || comps.length === 0) {
+          select.innerHTML = '<option value="">Sin competiciones disponibles</option>';
+          return;
+        }
+
         select.innerHTML = '<option value="">Selecciona Competición</option>';
         comps.forEach(c => {
           const code = c.codigo || c.cod_competicion || c.id;
@@ -254,6 +270,12 @@
 
       try {
         const groups = await apiFetch('groups', { competicion });
+        
+        if (!Array.isArray(groups) || groups.length === 0) {
+          select.innerHTML = '<option value="">Sin grupos disponibles</option>';
+          return;
+        }
+
         select.innerHTML = '<option value="">Selecciona Grupo</option>';
         groups.forEach(g => {
           const code = g.codigo || g.cod_grupo || g.id;
@@ -279,6 +301,12 @@
 
       try {
         const teams = await apiFetch('group-teams', { grupo });
+        
+        if (!Array.isArray(teams) || teams.length === 0) {
+          select.innerHTML = '<option value="">Sin equipos disponibles</option>';
+          return;
+        }
+
         select.innerHTML = '<option value="">Selecciona tu Equipo</option>';
         teams.forEach(t => {
           const code = t.codigo || t.cod_equipo || t.id_equipo || t.id;
