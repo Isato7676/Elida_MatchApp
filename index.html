@@ -290,7 +290,7 @@
       }
     }
 
-// 5. CARGAR EQUIPOS (Usando los endpoints confirmados del informe)
+// 5. CARGAR EQUIPOS (Usando la cadena completa de parámetros del informe)
 async function loadTeams() {
   const temporada = document.getElementById('select-season').value;
   const tipojuego = document.getElementById('select-gametype').value;
@@ -304,41 +304,48 @@ async function loadTeams() {
   select.innerHTML = '<option value="">Cargando equipos...</option>';
 
   try {
-    // 1. Intentamos primero con /api/group-teams
-    let teams = await apiFetch('group-teams', { grupo });
+    // 1. Intentamos con group-teams pasando grupo y competición
+    let teams = await apiFetch('group-teams', { competicion, grupo });
 
-    // Si viene vacío o no es array, usamos el endpoint del calendario como respaldo
+    // 2. Si viene vacío, probamos con group-rounds / jornadas para extraer equipos
     if (!Array.isArray(teams) || teams.length === 0) {
-      const calendar = await apiFetch('calendar', { temporada, tipojuego, competicion, grupo });
+      teams = await apiFetch('group-teams', { grupo });
+    }
+
+    // 3. Si sigue vacío, extraemos desde el calendario con la cadena completa
+    if (!Array.isArray(teams) || teams.length === 0) {
+      const calendarData = await apiFetch('calendar', { temporada, tipojuego, competicion, grupo });
       
-      if (Array.isArray(calendar) && calendar.length > 0) {
+      if (Array.isArray(calendarData) && calendarData.length > 0) {
         select.innerHTML = '<option value="">Selecciona tu Equipo</option>';
         const teamMap = new Map();
         
-        calendar.forEach(match => {
-          const codeEq1 = match.cod_equipo_local || match.codigo_equipo_local || match.id_equipo_local;
-          const nameEq1 = match.equipo_local || match.nombre_equipo_local;
-          const codeEq2 = match.cod_equipo_visitante || match.codigo_equipo_visitante || match.id_equipo_visitante;
-          const nameEq2 = match.equipo_visitante || match.nombre_equipo_visitante;
+        calendarData.forEach(m => {
+          const c1 = m.cod_equipo_local || m.codigo_equipo_local || m.cod_local || m.id_equipo_local;
+          const n1 = m.equipo_local || m.nombre_equipo_local || m.local;
+          const c2 = m.cod_equipo_visitante || m.codigo_equipo_visitante || m.cod_visitante || m.id_equipo_visitante;
+          const n2 = m.equipo_visitante || m.nombre_equipo_visitante || m.visitante;
 
-          if (codeEq1 && nameEq1) teamMap.set(codeEq1, nameEq1);
-          if (codeEq2 && nameEq2) teamMap.set(codeEq2, nameEq2);
+          if (c1 && n1) teamMap.set(String(c1), n1);
+          if (c2 && n2) teamMap.set(String(c2), n2);
         });
 
-        teamMap.forEach((nombre, codigo) => {
-          select.innerHTML += `<option value="${codigo}">${nombre}</option>`;
-        });
-        return;
+        if (teamMap.size > 0) {
+          teamMap.forEach((nombre, codigo) => {
+            select.innerHTML += `<option value="${codigo}">${nombre}</option>`;
+          });
+          return;
+        }
       }
 
       select.innerHTML = '<option value="">Sin equipos disponibles</option>';
       return;
     }
 
-    // Si /api/group-teams devolvió datos directamente:
+    // Si group-teams devolvió datos
     select.innerHTML = '<option value="">Selecciona tu Equipo</option>';
     teams.forEach(t => {
-      const code = t.codigo || t.cod_equipo || t.id || t.id_equipo;
+      const code = t.codigo || t.cod_equipo || t.id || t.id_equipo || t.codigo_equipo;
       const name = t.nombre || t.nombre_equipo || t.equipo;
       if (code && name) {
         select.innerHTML += `<option value="${code}">${name}</option>`;
