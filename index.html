@@ -3,18 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mi Futbol Base - App</title>
+  <title>Mi Fútbol Base - Mod Múltiple</title>
   <style>
     :root {
-      --primary: #0d6efd;
-      --primary-dark: #0a58ca;
-      --bg: #f4f6f9;
-      --surface: #ffffff;
-      --text: #212529;
-      --text-muted: #6c757d;
-      --highlight: #e7f1ff;
-      --border: #e0e0e0;
-      --danger: #dc3545;
+      --bg: #0f172a;               /* Azul noche profundo */
+      --surface: #1e293b;          /* Gris slate oscuro para tarjetas */
+      --surface-border: #334155;
+      --primary: #2563eb;          /* Azul vibrante */
+      --primary-light: #3b82f6;
+      --text: #f8fafc;             /* Blanco suave */
+      --text-muted: #94a3b8;       /* Gris claro secundario */
+      
+      /* Estilo destacado para TU EQUIPO */
+      --my-team-bg: #064e3b;       /* Verde noche / Azul verdoso */
+      --my-team-border: #10b981;   /* Borde esmeralda */
+      --my-team-text: #fbbf24;     /* Amarillo dorado */
+      
+      --danger: #ef4444;
       --radius: 12px;
     }
 
@@ -31,38 +36,37 @@
       display: flex;
       flex-direction: column;
       min-height: 100vh;
-      max-width: 480px; /* Simula pantalla de teléfono móvil */
+      max-width: 480px;
       margin: 0 auto;
-      border-left: 1px solid var(--border);
-      border-right: 1px solid var(--border);
+      border-left: 1px solid var(--surface-border);
+      border-right: 1px solid var(--surface-border);
       position: relative;
     }
 
     /* Cabecera */
     header {
-      background-color: var(--primary);
-      color: white;
+      background-color: #1e293b;
+      border-bottom: 1px solid var(--surface-border);
       padding: 16px;
       text-align: center;
       position: sticky;
       top: 0;
       z-index: 10;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
 
     header h1 {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       font-weight: 700;
+      letter-spacing: 0.5px;
     }
 
-    /* Contenedor de Pantallas */
+    /* Contenedor Principal */
     main {
       flex: 1;
       padding: 16px;
-      padding-bottom: 80px; /* Espacio para el menú inferior */
+      padding-bottom: 90px;
     }
 
-    /* Lógica de cambio de pantallas */
     .screen {
       display: none;
     }
@@ -70,14 +74,37 @@
       display: block;
     }
 
+    /* Banner / Hero de Portada */
+    .hero-banner {
+      background: linear-gradient(135deg, #1e40af 0%, #1e1b4b 100%);
+      border: 1px solid #3b82f6;
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 20px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .hero-banner h2 {
+      font-size: 1.2rem;
+      margin-bottom: 6px;
+      color: #ffffff;
+    }
+
+    .hero-banner p {
+      font-size: 0.85rem;
+      color: #93c5fd;
+      margin-bottom: 12px;
+    }
+
     /* Tarjetas Generales */
     .card {
       background: var(--surface);
+      border: 1px solid var(--surface-border);
       border-radius: var(--radius);
       padding: 14px;
       margin-bottom: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      border: 1px solid rgba(0,0,0,0.05);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
 
     /* Botones */
@@ -90,21 +117,26 @@
       border: none;
       border-radius: var(--radius);
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       cursor: pointer;
       text-align: center;
     }
 
+    .btn-secondary {
+      background-color: #334155;
+      color: var(--text);
+    }
+
     .btn-danger {
-      background-color: transparent;
+      background: transparent;
       color: var(--danger);
       border: 1px solid var(--danger);
-      width: auto;
       padding: 6px 10px;
+      border-radius: 8px;
       font-size: 0.8rem;
     }
 
-    /* PANTALLA 1: INICIO */
+    /* TARJETA DE EQUIPO EN PORTADA */
     .team-card {
       display: flex;
       justify-content: space-between;
@@ -113,17 +145,17 @@
     }
 
     .team-info h3 {
-      font-size: 1.05rem;
-      color: var(--primary);
+      font-size: 1rem;
+      color: var(--text);
       margin-bottom: 4px;
     }
 
     .team-info p {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: var(--text-muted);
     }
 
-    /* PANTALLA 2: BUSCADOR */
+    /* BUSCADOR */
     .search-box {
       display: flex;
       gap: 8px;
@@ -133,24 +165,18 @@
     .search-box input {
       flex: 1;
       padding: 12px;
-      border: 1px solid var(--border);
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      color: var(--text);
       border-radius: var(--radius);
-      font-size: 0.95rem;
       outline: none;
     }
 
-    .category-header {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      margin: 16px 0 8px 4px;
-    }
-
-    /* PANTALLA 3: LIGA (Pestañas + Contenido) */
+    /* PESTAÑAS DENTRO DE LIGA */
     .subtabs {
       display: flex;
-      background: #e9ecef;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
       border-radius: var(--radius);
       padding: 4px;
       margin-bottom: 16px;
@@ -158,9 +184,9 @@
 
     .subtab {
       flex: 1;
-      padding: 8px;
+      padding: 10px;
       text-align: center;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 600;
       border-radius: 8px;
       cursor: pointer;
@@ -168,43 +194,55 @@
     }
 
     .subtab.active {
-      background: var(--surface);
-      color: var(--primary);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      background: var(--primary);
+      color: white;
     }
 
-    /* Selector de Jornadas */
+    /* NAVEGACIÓN JORNADAS */
     .jornada-nav {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 16px;
       background: var(--surface);
-      padding: 8px 12px;
+      border: 1px solid var(--surface-border);
+      padding: 10px 14px;
       border-radius: var(--radius);
     }
 
     .jornada-nav button {
-      background: none;
+      background: #334155;
       border: none;
-      color: var(--primary);
-      font-size: 1.2rem;
-      cursor: pointer;
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 6px;
       font-weight: bold;
+      cursor: pointer;
     }
 
-    /* Tarjeta de Partido */
+    /* TARJETA DE PARTIDO (Modo Oscuro) */
     .match-card {
       padding: 12px;
+    }
+
+    /* Estilo Especial cuando juega TU EQUIPO */
+    .match-card.is-my-team {
+      background-color: var(--my-team-bg);
+      border: 1px solid var(--my-team-border);
+    }
+
+    .match-card.is-my-team .match-team.highlight-team {
+      color: var(--my-team-text);
+      font-weight: 800;
     }
 
     .match-header {
       display: flex;
       justify-content: space-between;
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       color: var(--text-muted);
-      margin-bottom: 8px;
-      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--surface-border);
       padding-bottom: 6px;
     }
 
@@ -213,26 +251,30 @@
       justify-content: space-between;
       align-items: center;
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
     }
 
     .match-team {
       flex: 1;
+      color: var(--text);
     }
+
     .match-team.right {
       text-align: right;
     }
 
     .match-score {
-      background: var(--highlight);
-      color: var(--primary-dark);
+      background: #0f172a;
+      border: 1px solid var(--surface-border);
+      color: var(--primary-light);
       padding: 4px 10px;
       border-radius: 6px;
-      font-size: 1rem;
+      font-size: 0.95rem;
+      font-weight: bold;
       margin: 0 8px;
     }
 
-    /* Tabla de Clasificación */
+    /* TABLA CLASIFICACIÓN */
     .table-container {
       overflow-x: auto;
     }
@@ -242,6 +284,7 @@
       border-collapse: collapse;
       font-size: 0.85rem;
       background: var(--surface);
+      border: 1px solid var(--surface-border);
       border-radius: var(--radius);
       overflow: hidden;
     }
@@ -249,26 +292,26 @@
     th, td {
       padding: 10px 8px;
       text-align: center;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid var(--surface-border);
     }
 
     th {
-      background: #f8f9fa;
+      background: #0f172a;
       color: var(--text-muted);
-      font-weight: 600;
     }
 
     td.team-name {
       text-align: left;
-      font-weight: 600;
     }
 
-    tr.my-team {
-      background-color: var(--highlight);
-      font-weight: 700;
+    /* Fila destacada de TU EQUIPO en la tabla */
+    tr.my-team-row {
+      background-color: var(--my-team-bg);
+      color: var(--my-team-text);
+      font-weight: bold;
     }
 
-    /* Menú de Navegación Inferior Móvil */
+    /* NAVEGACIÓN INFERIOR DINÁMICA */
     nav.bottom-nav {
       position: fixed;
       bottom: 0;
@@ -276,31 +319,24 @@
       transform: translateX(-50%);
       width: 100%;
       max-width: 480px;
-      background: var(--surface);
+      background: #1e293b;
       display: flex;
-      border-top: 1px solid var(--border);
+      border-top: 1px solid var(--surface-border);
       z-index: 100;
     }
 
     .nav-item {
       flex: 1;
-      padding: 10px 0;
+      padding: 12px 0;
       text-align: center;
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       color: var(--text-muted);
       cursor: pointer;
-      text-decoration: none;
+      font-weight: 600;
     }
 
     .nav-item.active {
-      color: var(--primary);
-      font-weight: 700;
-    }
-
-    .nav-item icon {
-      display: block;
-      font-size: 1.2rem;
-      margin-bottom: 2px;
+      color: var(--primary-light);
     }
   </style>
 </head>
@@ -311,109 +347,54 @@
   </header>
 
   <main>
-    <!-- 1. PANTALLA: PORTADA / MIS EQUIPOS -->
+    <!-- 1. PANTALLA: PORTADA / INICIO -->
     <section id="screen-home" class="screen active">
-      <div style="margin-bottom: 16px;">
-        <button class="btn" onclick="showScreen('search', 'Buscar Equipo')">➕ Añadir Nuevo Equipo</button>
+      <div class="hero-banner">
+        <h2>⚽ Mi Fútbol Base</h2>
+        <p>Sigue los resultados y clasificaciones de tus equipos en tiempo real.</p>
+        <button class="btn" onclick="showScreen('search', 'Buscar Equipo')">➕ Buscar Nuevo Equipo</button>
       </div>
 
-      <div class="card team-card" onclick="showScreen('league', 'C.D. Élida Olimpia A')">
-        <div class="team-info">
-          <h3>C.D. Élida Olimpia "A"</h3>
-          <p>Infantil Primera — Grupo 15</p>
-        </div>
-        <button class="btn-danger" onclick="event.stopPropagation(); alert('Equipo eliminado de tus seguidos');">🗑️</button>
-      </div>
-
-      <div class="card team-card" onclick="showScreen('league', 'A.D. Unión Adarve B')">
-        <div class="team-info">
-          <h3>A.D. Unión Adarve "B"</h3>
-          <p>Alevín Preferente — Grupo 4</p>
-        </div>
-        <button class="btn-danger" onclick="event.stopPropagation(); alert('Equipo eliminado de tus seguidos');">🗑️</button>
+      <div id="my-teams-list">
+        <!-- Lista de equipos seguidos cargados dinámicamente -->
       </div>
     </section>
 
-    <!-- 2. PANTALLA: BUSCADOR -->
+    <!-- 2. PANTALLA: BUSCADOR DE EQUIPOS -->
     <section id="screen-search" class="screen">
       <div class="search-box">
-        <input type="text" value="Elida" placeholder="Nombre del club o equipo...">
-        <button class="btn" style="width: auto; padding: 0 16px;">Buscar</button>
+        <input type="text" id="search-input" value="Elida" placeholder="Buscar por club o equipo...">
+        <button class="btn" style="width: auto; padding: 0 16px;" onclick="buscarEquipos()">Buscar</button>
       </div>
 
-      <div class="category-header">Categoría Infantil</div>
-      
-      <div class="card team-card">
-        <div class="team-info">
-          <h3>C.D. Élida Olimpia "A"</h3>
-          <p>Primera Infantil — Grupo 15</p>
-        </div>
-        <button class="btn" style="width: auto; padding: 6px 12px; font-size: 0.8rem;">⭐ Seguir</button>
-      </div>
-
-      <div class="card team-card">
-        <div class="team-info">
-          <h3>C.D. Élida Olimpia "B"</h3>
-          <p>Segunda Infantil — Grupo 18</p>
-        </div>
-        <button class="btn" style="width: auto; padding: 6px 12px; font-size: 0.8rem;">⭐ Seguir</button>
-      </div>
-
-      <div class="category-header">Categoría Alevín</div>
-
-      <div class="card team-card">
-        <div class="team-info">
-          <h3>C.D. Élida Olimpia "A"</h3>
-          <p>Preferente Alevín — Grupo 5</p>
-        </div>
-        <button class="btn" style="width: auto; padding: 6px 12px; font-size: 0.8rem;">⭐ Seguir</button>
+      <div id="search-results">
+        <p style="text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: 20px;">
+          Escribe el nombre de tu club para listar las categorías disponibles en la RFFM.
+        </p>
       </div>
     </section>
 
-    <!-- 3. PANTALLA: DETALLE LIGA (CLASIFICACIÓN Y CALENDARIO) -->
+    <!-- 3. PANTALLA: DETALLE LIGA (CONEXIÓN REAL) -->
     <section id="screen-league" class="screen">
-      <!-- Selector Interno (Pestañas) -->
       <div class="subtabs">
         <div class="subtab active" onclick="switchSubTab('calendar')">📅 Calendario</div>
         <div class="subtab" onclick="switchSubTab('table')">📊 Clasificación</div>
       </div>
 
-      <!-- VISTA CALENDARIO -->
+      <!-- Pestaña Calendario -->
       <div id="subtab-calendar">
         <div class="jornada-nav">
-          <button>◄</button>
-          <span><strong>Jornada 5</strong> de 30</span>
-          <button>►</button>
+          <button onclick="cambiarJornada(-1)">◄ Prev</button>
+          <span id="jornada-label"><strong>Jornada 1</strong></span>
+          <button onclick="cambiarJornada(1)">Sig ►</button>
         </div>
 
-        <!-- Partido Destacado de nuestro equipo -->
-        <div class="card match-card" style="border-left: 4px solid var(--primary);">
-          <div class="match-header">
-            <span>⏰ Sáb 04/10 — 10:30h</span>
-            <span>📍 C.M.F. La Elipa</span>
-          </div>
-          <div class="match-body">
-            <span class="match-team">C.D. Élida Olimpia A</span>
-            <span class="match-score">3 - 1</span>
-            <span class="match-team right">Rayo Vallecano C</span>
-          </div>
-        </div>
-
-        <!-- Otro partido del grupo -->
-        <div class="card match-card">
-          <div class="match-header">
-            <span>⏰ Sáb 04/10 — 12:00h</span>
-            <span>📍 Polideportivo Vicálvaro</span>
-          </div>
-          <div class="match-body">
-            <span class="match-team">Vicálvaro A</span>
-            <span class="match-score">0 - 2</span>
-            <span class="match-team right">ED Moratalaz B</span>
-          </div>
+        <div id="matches-container">
+          <p style="text-align: center; color: var(--text-muted);">Cargando jornada actual...</p>
         </div>
       </div>
 
-      <!-- VISTA CLASIFICACIÓN -->
+      <!-- Pestaña Clasificación -->
       <div id="subtab-table" style="display: none;">
         <div class="table-container">
           <table>
@@ -426,35 +407,8 @@
                 <th>DG</th>
               </tr>
             </thead>
-            <tbody>
-              <tr class="my-team">
-                <td>1</td>
-                <td class="team-name">C.D. Élida Olimpia A</td>
-                <td>15</td>
-                <td>5</td>
-                <td>+12</td>
-              </tr>
-              <tr>
-                <td>2</td>
-                <td class="team-name">ED Moratalaz B</td>
-                <td>12</td>
-                <td>5</td>
-                <td>+6</td>
-              </tr>
-              <tr>
-                <td>3</td>
-                <td class="team-name">Rayo Vallecano C</td>
-                <td>9</td>
-                <td>5</td>
-                <td>+2</td>
-              </tr>
-              <tr>
-                <td>4</td>
-                <td class="team-name">Vicálvaro A</td>
-                <td>6</td>
-                <td>5</td>
-                <td>-3</td>
-              </tr>
+            <tbody id="table-body">
+              <tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">Cargando clasificación...</td></tr>
             </tbody>
           </table>
         </div>
@@ -462,32 +416,95 @@
     </section>
   </main>
 
-  <!-- Navegación Inferior Simulada -->
-  <nav class="bottom-nav">
-    <div class="nav-item active" id="nav-home" onclick="showScreen('home', 'Mis Equipos')">
-      <icon>🏠</icon>
-      Inicio
-    </div>
-    <div class="nav-item" id="nav-search" onclick="showScreen('search', 'Buscar Equipo')">
-      <icon>🔍</icon>
-      Buscar
-    </div>
+  <!-- Navegación Inferior Adaptable -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <!-- Renderizado por JavaScript según la pantalla activa -->
   </nav>
 
   <script>
-    // Navegación entre pantallas principales
+    // Equipos almacenados en LocalStorage (Con uno por defecto para pruebas)
+    let misEquipos = JSON.parse(localStorage.getItem('misEquipos')) || [
+      {
+        nombre: 'C.D. Élida Olimpia "A"',
+        categoria: 'Primera Infantil — Grupo 15',
+        temporada: '22',
+        competicion: '26737819',
+        grupo: '26737824',
+        filtroNombre: 'ELIDA'
+      }
+    ];
+
+    let equipoActivo = null;
+    let jornadaActual = 1;
+
+    // Inicialización
+    window.onload = function() {
+      renderMyTeams();
+      showScreen('home', 'Mis Equipos');
+    };
+
+    // Renderiza los equipos seguidos en la pantalla de Inicio
+    function renderMyTeams() {
+      const container = document.getElementById('my-teams-list');
+      if (misEquipos.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color: var(--text-muted);">No sigues a ningún equipo todavía.</p>';
+        return;
+      }
+
+      container.innerHTML = '';
+      misEquipos.forEach((eq, index) => {
+        const card = document.createElement('div');
+        card.className = 'card team-card';
+        card.onclick = () => abrirLiga(eq);
+        card.innerHTML = `
+          <div class="team-info">
+            <h3>${eq.nombre}</h3>
+            <p>${eq.categoria}</p>
+          </div>
+          <button class="btn-danger" onclick="event.stopPropagation(); eliminarEquipo(${index});">🗑️</button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function eliminarEquipo(index) {
+      misEquipos.splice(index, 1);
+      localStorage.setItem('misEquipos', JSON.stringify(misEquipos));
+      renderMyTeams();
+    }
+
+    // Control de pantallas y renderizado de la barra inferior
     function showScreen(screenId, title) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
       document.getElementById('screen-' + screenId).classList.add('active');
       document.getElementById('header-title').innerText = title;
 
-      if(screenId === 'home') document.getElementById('nav-home').classList.add('active');
-      if(screenId === 'search') document.getElementById('nav-search').classList.add('active');
+      const nav = document.getElementById('bottom-nav');
+      
+      if (screenId === 'league') {
+        // En la pantalla de liga NO mostramos el botón de búsqueda
+        nav.innerHTML = `
+          <div class="nav-item active" onclick="showScreen('home', 'Mis Equipos')">
+            🏠 Volver a Inicio
+          </div>
+        `;
+      } else {
+        // En Inicio o Buscador mostramos la navegación estándar
+        nav.innerHTML = `
+          <div class="nav-item ${screenId === 'home' ? 'active' : ''}" onclick="showScreen('home', 'Mis Equipos')">🏠 Inicio</div>
+          <div class="nav-item ${screenId === 'search' ? 'active' : ''}" onclick="showScreen('search', 'Buscar Equipo')">🔍 Buscar Nuevo</div>
+        `;
+      }
     }
 
-    // Cambiar entre Pestañas dentro de la pantalla de Liga (Calendario / Clasificación)
+    // Abrir pantalla de Liga y cargar datos reales
+    function abrirLiga(equipo) {
+      equipoActivo = equipo;
+      jornadaActual = 1;
+      showScreen('league', equipo.nombre);
+      cargarDatosRFFM();
+    }
+
     function switchSubTab(tab) {
       document.querySelectorAll('.subtab').forEach(t => t.classList.remove('active'));
       if(tab === 'calendar') {
@@ -499,6 +516,83 @@
         document.getElementById('subtab-calendar').style.display = 'none';
         document.getElementById('subtab-table').style.display = 'block';
       }
+    }
+
+    function cambiarJornada(delta) {
+      if (jornadaActual + delta >= 1) {
+        jornadaActual += delta;
+        document.getElementById('jornada-label').innerHTML = `<strong>Jornada ${jornadaActual}</strong>`;
+        cargarDatosRFFM();
+      }
+    }
+
+    // Petición real a la RFFM a través de Proxy CORS
+    async function cargarDatosRFFM() {
+      if (!equipoActivo) return;
+
+      const matchesContainer = document.getElementById('matches-container');
+      const tableBody = document.getElementById('table-body');
+      
+      matchesContainer.innerHTML = '<p style="text-align:center; color: var(--text-muted); padding: 20px;">Cargando resultados...</p>';
+
+      const targetUrl = `https://www.rffm.es/competicion/resultados-y-jornadas?temporada=${equipoActivo.temporada}&competicion=${equipoActivo.competicion}&grupo=${equipoActivo.grupo}&jornada=${jornadaActual}&tipojuego=1`;
+      const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(targetUrl);
+
+      try {
+        const response = await fetch(proxyUrl);
+        const data = await response.json();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(data.contents, 'text/html');
+
+        // Renderizar Partidos
+        const filasPartidos = doc.querySelectorAll('.tabla-resultados tbody tr, .table-responsive tbody tr');
+        
+        if (filasPartidos.length > 0) {
+          matchesContainer.innerHTML = '';
+          filasPartidos.forEach(fila => {
+            const local = fila.querySelector('.local, td:nth-child(2)')?.innerText.trim() || 'Local';
+            const visitante = fila.querySelector('.visitante, td:nth-child(4)')?.innerText.trim() || 'Visitante';
+            const resultado = fila.querySelector('.resultado, td:nth-child(3)')?.innerText.trim() || 'vs';
+            const fechaHora = fila.querySelector('.fecha, td:nth-child(1)')?.innerText.trim() || 'Por determinar';
+
+            const esMiEquipo = local.toUpperCase().includes(equipoActivo.filtroNombre) || visitante.toUpperCase().includes(equipoActivo.filtroNombre);
+
+            const card = document.createElement('div');
+            card.className = `card match-card ${esMiEquipo ? 'is-my-team' : ''}`;
+            card.innerHTML = `
+              <div class="match-header">
+                <span>⏰ ${fechaHora}</span>
+              </div>
+              <div class="match-body">
+                <span class="match-team ${local.toUpperCase().includes(equipoActivo.filtroNombre) ? 'highlight-team' : ''}">${local}</span>
+                <span class="match-score">${resultado}</span>
+                <span class="match-team right ${visitante.toUpperCase().includes(equipoActivo.filtroNombre) ? 'highlight-team' : ''}">${visitante}</span>
+              </div>
+            `;
+            matchesContainer.appendChild(card);
+          });
+        } else {
+          matchesContainer.innerHTML = '<p style="text-align:center; color: var(--text-muted); padding: 20px;">Consulta completada. Cambia de jornada para explorar partidos.</p>';
+        }
+
+      } catch (err) {
+        console.error(err);
+        matchesContainer.innerHTML = '<p style="text-align:center; color: var(--danger); padding: 20px;">Error al conectar con la RFFM.</p>';
+      }
+    }
+
+    function buscarEquipos() {
+      const val = document.getElementById('search-input').value;
+      const res = document.getElementById('search-results');
+      res.innerHTML = `
+        <div class="card team-card">
+          <div class="team-info">
+            <h3>C.D. Élida Olimpia "A"</h3>
+            <p>Primera Infantil — Grupo 15</p>
+          </div>
+          <button class="btn" style="width: auto; padding: 6px 12px;" onclick="alert('Equipo añadido a tus seguidos')">⭐ Seguir</button>
+        </div>
+      `;
     }
   </script>
 </body>
