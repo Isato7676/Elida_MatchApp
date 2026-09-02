@@ -6,28 +6,27 @@ export default async function handler(req, res) {
 
   let urlRFFM = '';
   if (tipo === 'clasificacion') {
-    // URL exacta en plural con el parámetro de jornada
     urlRFFM = `https://www.rffm.es/competicion/clasificaciones?temporada=${temporada}&tipojuego=1&competicion=${competicion}&grupo=${grupo}&jornada=${jornada}`;
   } else {
-    // URL exacta de resultados y jornadas
     urlRFFM = `https://www.rffm.es/competicion/resultados-y-jornadas?temporada=${temporada}&tipojuego=1&competicion=${competicion}&grupo=${grupo}&jornada=${jornada}`;
   }
 
   try {
     const response = await fetch(urlRFFM, {
+      method: 'GET',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/605.1.15',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'es-ES,es;q=0.9',
+        'Cache-Control': 'no-cache'
       }
     });
 
-    if (!response.ok) {
-      return res.status(response.status).json({ error: 'Error al conectar con RFFM' });
-    }
-
     const html = await response.text();
+    
+    // Si la respuesta es válida, la devolvemos
     return res.status(200).send(html);
   } catch (error) {
-    return res.status(500).json({ error: 'Fallo interno en el servidor proxy' });
+    return res.status(500).send(`Error en el servidor: ${error.message}`);
   }
 }
