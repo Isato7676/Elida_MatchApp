@@ -3,441 +3,349 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Elida MatchApp</title>
+  <title>RFFM Match App</title>
   <style>
     :root {
-      --primary: #1e40af;
-      --bg: #f3f4f6;
+      --primary: #004d98;
+      --bg: #f4f6f9;
       --card-bg: #ffffff;
-      --text: #1f2937;
-      --accent: #2563eb;
+      --text: #333333;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding-bottom: 20px; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 16px;
+    }
 
-    /* Cabecera */
-    header { background-color: var(--primary); color: white; padding: 15px; text-align: center; font-size: 1.2rem; font-weight: bold; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    
-    .container { max-width: 600px; margin: 0 auto; padding: 15px; }
-    .hidden { display: none !important; }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
 
-    /* Botones y Controles */
-    .btn { background-color: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; font-size: 1rem; }
-    .btn-secondary { background-color: #6b7280; }
-    .btn-danger { background-color: #ef4444; width: auto; padding: 6px 12px; }
+    h1 {
+      text-align: center;
+      color: var(--primary);
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
 
-    /* Tarjetas */
-    .card { background: var(--card-bg); padding: 15px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-    .card-title { font-weight: bold; font-size: 1.1rem; }
-    .card-subtitle { font-size: 0.85rem; color: #6b7280; margin-top: 4px; }
+    .card {
+      background: var(--card-bg);
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
 
-    /* Formularios y Desplegables */
-    .form-group { margin-bottom: 15px; }
-    label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
-    select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #d1d5db; background: white; font-size: 1rem; }
+    .form-group {
+      margin-bottom: 12px;
+    }
 
-    /* NAVEGACIÓN POR PESTAÑAS */
-    .tabs { display: flex; background: white; border-radius: 8px; margin-bottom: 15px; overflow: hidden; border: 1px solid #e5e7eb; }
-    .tab { flex: 1; text-align: center; padding: 12px 5px; font-size: 0.9rem; font-weight: bold; cursor: pointer; background: white; color: #6b7280; }
-    .tab.active { background: var(--accent); color: white; }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: #666;
+    }
 
-    /* Selector de Jornadas */
-    .jornada-nav { display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; }
-    
-    /* Partido Card */
-    .match-card { background: white; border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-    .match-team { display: flex; justify-content: space-between; margin: 5px 0; font-weight: 500; }
-    .match-score { font-weight: bold; color: var(--primary); }
-    .match-info { font-size: 0.75rem; color: #6b7280; border-top: 1px solid #f3f4f6; margin-top: 8px; padding-top: 6px; text-align: center; }
+    select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      background-color: #fff;
+    }
+
+    select:disabled {
+      background-color: #e9ecef;
+      cursor: not-allowed;
+    }
+
+    .status-msg {
+      font-size: 0.85rem;
+      color: #004d98;
+      margin-top: 8px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
 
-  <header id="header-title">Elida MatchApp</header>
-
   <div class="container">
+    <h1>RFFM Match App</h1>
 
-    <!-- VISTA 1: INICIO (MIS EQUIPOS) -->
-    <div id="view-home">
-      <button class="btn" onclick="showView('view-add')">+ Añadir Nuevo Equipo</button>
-      <h3 style="margin: 20px 0 10px 0;">Mis Equipos Favoritos</h3>
-      <div id="favorites-list">
-        <!-- Se rellenará dinámicamente -->
+    <div class="card">
+      <!-- 1. Temporada -->
+      <div class="form-group">
+        <label for="select-season">Temporada</label>
+        <select id="select-season" onchange="loadCompetitions()">
+          <option value="">Cargando temporadas...</option>
+        </select>
       </div>
+
+      <!-- 2. Tipo de Juego -->
+      <div class="form-group">
+        <label for="select-gametype">Modalidad</label>
+        <select id="select-gametype" onchange="loadCompetitions()" disabled>
+          <option value="1">Fútbol 11</option>
+          <option value="2">Fútbol 7</option>
+          <option value="3">Fútbol Sala</option>
+        </select>
+      </div>
+
+      <!-- 3. Competición -->
+      <div class="form-group">
+        <label for="select-competition">Competición</label>
+        <select id="select-competition" onchange="loadGroups()" disabled>
+          <option value="">Selecciona Competición</option>
+        </select>
+      </div>
+
+      <!-- 4. Grupo -->
+      <div class="form-group">
+        <label for="select-group">Grupo</label>
+        <select id="select-group" onchange="loadTeams()" disabled>
+          <option value="">Selecciona Grupo</option>
+        </select>
+      </div>
+
+      <!-- 5. Equipo -->
+      <div class="form-group">
+        <label for="select-team">Equipo</label>
+        <select id="select-team" disabled>
+          <option value="">Selecciona tu Equipo</option>
+        </select>
+      </div>
+
+      <div id="status" class="status-msg"></div>
     </div>
-
-    <!-- VISTA 2: AÑADIR EQUIPO -->
-    <div id="view-add" class="hidden">
-      <h3>Selecciona tu Liga</h3>
-      <br>
-      <div class="form-group">
-        <label>Temporada</label>
-        <select id="select-season" onchange="loadGameTypes()"><option value="">Cargando...</option></select>
-      </div>
-      <div class="form-group">
-        <label>Tipo de Juego</label>
-        <select id="select-gametype" onchange="loadCompetitions()" disabled><option value="">Selecciona temporada</option></select>
-      </div>
-      <div class="form-group">
-        <label>Competición</label>
-        <select id="select-competition" onchange="loadGroups()" disabled><option value="">Selecciona tipo de juego</option></select>
-      </div>
-      <div class="form-group">
-        <label>Grupo</label>
-        <select id="select-group" onchange="loadTeams()" disabled><option value="">Selecciona competición</option></select>
-      </div>
-      <div class="form-group">
-        <label>Elige tu Equipo</label>
-        <select id="select-team" disabled><option value="">Selecciona grupo</option></select>
-      </div>
-
-      <button class="btn" onclick="saveFavorite()">Guardar en Favoritos</button>
-      <button class="btn btn-secondary" onclick="showView('view-home')">Cancelar</button>
-    </div>
-
-    <!-- VISTA 3: DETALLE DE LIGA -->
-    <div id="view-league" class="hidden">
-      <button class="btn btn-secondary" style="margin-bottom: 15px;" onclick="showView('view-home')">← Volver a Mis Equipos</button>
-
-      <!-- Pestañas -->
-      <div class="tabs">
-        <div class="tab active" onclick="switchTab('partidos')">Partidos</div>
-        <div class="tab" onclick="switchTab('clasificacion')">Clasificación</div>
-        <div class="tab" onclick="switchTab('goleadores')">Goleadores</div>
-      </div>
-
-      <!-- Pestaña Partidos -->
-      <div id="tab-partidos">
-        <div class="jornada-nav">
-          <button class="btn btn-secondary" style="width:auto;" onclick="prevJornada()">◀</button>
-          <span id="jornada-label" style="font-weight:bold;">Jornada 1</span>
-          <button class="btn btn-secondary" style="width:auto;" onclick="nextJornada()">▶</button>
-        </div>
-        <div id="matches-list">
-          <!-- Tarjetas de partidos -->
-        </div>
-      </div>
-
-      <!-- Pestaña Clasificación -->
-      <div id="tab-clasificacion" class="hidden">
-        <div id="standings-list">
-          <p style="text-align:center;">Cargando clasificación...</p>
-        </div>
-      </div>
-
-      <!-- Pestaña Goleadores -->
-      <div id="tab-goleadores" class="hidden">
-        <div id="scorers-list">
-          <p style="text-align:center;">Cargando goleadores...</p>
-        </div>
-      </div>
-
-    </div>
-
   </div>
 
   <script>
-    // Variables globales de estado
-    let currentLeague = null;
-    let currentJornada = 1;
+    // Variable global para almacenar todo el dataset de la liga
+    window.leagueData = null;
 
-    // Inicialización al cargar la página
-    document.addEventListener("DOMContentLoaded", () => {
-      renderFavorites();
-      loadSeasons();
-    });
-
-    // Control de vistas
-    function showView(viewId) {
-      document.getElementById('view-home').classList.add('hidden');
-      document.getElementById('view-add').classList.add('hidden');
-      document.getElementById('view-league').classList.add('hidden');
-      document.getElementById(viewId).classList.remove('hidden');
-    }
-
-    // Control de Pestañas
-    function switchTab(tabName) {
-      document.getElementById('tab-partidos').classList.add('hidden');
-      document.getElementById('tab-clasificacion').classList.add('hidden');
-      document.getElementById('tab-goleadores').classList.add('hidden');
-      
-      const tabs = document.querySelectorAll('.tab');
-      tabs.forEach(t => t.classList.remove('active'));
-
-      if(tabName === 'partidos') {
-        document.getElementById('tab-partidos').classList.remove('hidden');
-        tabs[0].classList.add('active');
-      } else if(tabName === 'clasificacion') {
-        document.getElementById('tab-clasificacion').classList.remove('hidden');
-        tabs[1].classList.add('active');
-      } else if(tabName === 'goleadores') {
-        document.getElementById('tab-goleadores').classList.remove('hidden');
-        tabs[2].classList.add('active');
-      }
-    }
-
-    // Llamada a tu API en Vercel
+    // Función auxiliar centralizada para peticiones al proxy serverless
     async function apiFetch(endpoint, params = {}) {
-      const queryString = new URLSearchParams(params).toString();
-      const url = `/api/rffm?endpoint=${endpoint}${queryString ? `&${queryString}` : ''}`;
-      const response = await fetch(url);
+      const query = new URLSearchParams({ endpoint, ...params }).toString();
+      const response = await fetch(`/api/rffm?${query}`);
+      if (!response.ok) {
+        throw new Error(`HTTP Error: ${response.status}`);
+      }
       return await response.json();
     }
+
+    // Inicialización al cargar la página
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSeasons();
+    });
 
     // 1. CARGAR TEMPORADAS
     async function loadSeasons() {
       const select = document.getElementById('select-season');
-      select.innerHTML = '<option value="">Cargando...</option>';
+      const selectGameType = document.getElementById('select-gametype');
+      
       try {
         const seasons = await apiFetch('seasons');
-        console.log("Respuesta de temporadas recibida:", seasons); // Para depuración
-
-        if (!Array.isArray(seasons) || seasons.length === 0) {
-          select.innerHTML = '<option value="">Sin temporadas disponibles</option>';
-          return;
-        }
-
         select.innerHTML = '<option value="">Selecciona Temporada</option>';
-        seasons.forEach(s => {
-          // Buscamos el código en cualquier clave posible que mande la RFFM
-          const code = s.cod_temporada || s.codigo || s.id || s.temporada || s.cod;
-          // Buscamos el nombre visual en cualquier clave posible
-          const name = s.nombre || s.nombre_temporada || s.denominacion || s.title || code;
-          
-          if (code) {
-            select.innerHTML += `<option value="${code}">${name}</option>`;
-          }
-        });
+        
+        if (Array.isArray(seasons)) {
+          seasons.forEach(s => {
+            const code = s.cod_temporada || s.codigo || s.id;
+            const name = s.nombre || s.nombre_temporada || s.temporada;
+            if (code && name) {
+              select.innerHTML += `<option value="${code}">${name}</option>`;
+            }
+          });
+        }
+        
+        // Habilitar selección de tipo de juego
+        selectGameType.disabled = false;
+
       } catch (e) {
-        console.error("Error cargando temporadas:", e);
-        select.innerHTML = '<option value="">Error al cargar (revisa conexión)</option>';
+        console.error("Error al cargar temporadas:", e);
+        select.innerHTML = '<option value="">Error al cargar temporadas</option>';
       }
     }
 
-    // 2. TIPO DE JUEGO
-    function loadGameTypes() {
-      const select = document.getElementById('select-gametype');
-      select.disabled = false;
-      select.innerHTML = `
-        <option value="">Selecciona Tipo</option>
-        <option value="1">Fútbol 11</option>
-        <option value="2">Fútbol 7</option>
-        <option value="3">Fútbol Sala</option>
-      `;
-    }
-
-    // 3. CARGAR COMPETICIONES
+    // 2 y 3. CARGAR COMPETICIONES
     async function loadCompetitions() {
       const temporada = document.getElementById('select-season').value;
       const tipojuego = document.getElementById('select-gametype').value;
-      if (!temporada || !tipojuego) return;
 
-      const select = document.getElementById('select-competition');
-      select.disabled = false;
-      select.innerHTML = '<option value="">Cargando...</option>';
+      const selectComp = document.getElementById('select-competition');
+      const selectGroup = document.getElementById('select-group');
+      const selectTeam = document.getElementById('select-team');
+
+      // Resetear desplegables dependientes
+      selectComp.innerHTML = '<option value="">Cargando competiciones...</option>';
+      selectComp.disabled = true;
+      selectGroup.innerHTML = '<option value="">Selecciona Grupo</option>';
+      selectGroup.disabled = true;
+      selectTeam.innerHTML = '<option value="">Selecciona tu Equipo</option>';
+      selectTeam.disabled = true;
+
+      if (!temporada || !tipojuego) return;
 
       try {
         const comps = await apiFetch('competitions', { temporada, tipojuego });
-        
+        selectComp.disabled = false;
+
         if (!Array.isArray(comps) || comps.length === 0) {
-          select.innerHTML = '<option value="">Sin competiciones disponibles</option>';
+          selectComp.innerHTML = '<option value="">Sin competiciones disponibles</option>';
           return;
         }
 
-        select.innerHTML = '<option value="">Selecciona Competición</option>';
+        selectComp.innerHTML = '<option value="">Selecciona Competición</option>';
         comps.forEach(c => {
-          const code = c.codigo || c.cod_competicion || c.id;
+          const code = c.codigo || c.cod_competicion;
           const name = c.nombre || c.nombre_competicion;
           if (code && name) {
-            select.innerHTML += `<option value="${code}">${name}</option>`;
+            selectComp.innerHTML += `<option value="${code}">${name}</option>`;
           }
         });
+
       } catch (e) {
-        console.error("Error cargando competiciones", e);
-        select.innerHTML = '<option value="">Error al cargar</option>';
+        console.error("Error al cargar competiciones:", e);
+        selectComp.innerHTML = '<option value="">Error al cargar competiciones</option>';
       }
     }
 
     // 4. CARGAR GRUPOS
     async function loadGroups() {
       const competicion = document.getElementById('select-competition').value;
-      if (!competicion) return;
 
-      const select = document.getElementById('select-group');
-      select.disabled = false;
-      select.innerHTML = '<option value="">Cargando...</option>';
+      const selectGroup = document.getElementById('select-group');
+      const selectTeam = document.getElementById('select-team');
+
+      // Resetear desplegables dependientes
+      selectGroup.innerHTML = '<option value="">Cargando grupos...</option>';
+      selectGroup.disabled = true;
+      selectTeam.innerHTML = '<option value="">Selecciona tu Equipo</option>';
+      selectTeam.disabled = true;
+
+      if (!competicion) return;
 
       try {
         const groups = await apiFetch('groups', { competicion });
-        
+        selectGroup.disabled = false;
+
         if (!Array.isArray(groups) || groups.length === 0) {
-          select.innerHTML = '<option value="">Sin grupos disponibles</option>';
+          selectGroup.innerHTML = '<option value="">Sin grupos disponibles</option>';
           return;
         }
 
-        select.innerHTML = '<option value="">Selecciona Grupo</option>';
+        selectGroup.innerHTML = '<option value="">Selecciona Grupo</option>';
         groups.forEach(g => {
-          const code = g.codigo || g.cod_grupo || g.id;
+          const code = g.codigo || g.cod_grupo;
           const name = g.nombre || g.nombre_grupo;
           if (code && name) {
-            select.innerHTML += `<option value="${code}">${name}</option>`;
+            selectGroup.innerHTML += `<option value="${code}">${name}</option>`;
           }
         });
+
       } catch (e) {
-        console.error("Error cargando grupos", e);
-        select.innerHTML = '<option value="">Error al cargar</option>';
+        console.error("Error al cargar grupos:", e);
+        selectGroup.innerHTML = '<option value="">Error al cargar grupos</option>';
       }
     }
 
-// 5. CARGAR EQUIPOS (Parseando el JSON de Next.js de la RFFM)
-async function loadTeams() {
-  const temporada = document.getElementById('select-season').value;
-  const tipojuego = document.getElementById('select-gametype').value;
-  const competicion = document.getElementById('select-competition').value;
-  const grupo = document.getElementById('select-group').value;
+    // 5. CARGAR DATASET COMPLETO Y EQUIPOS AL SELECCIONAR GRUPO
+    async function loadTeams() {
+      const temporada = document.getElementById('select-season').value;
+      const tipojuego = document.getElementById('select-gametype').value;
+      const competicion = document.getElementById('select-competition').value;
+      const grupo = document.getElementById('select-group').value;
 
-  if (!grupo) return;
+      if (!grupo) return;
 
-  const select = document.getElementById('select-team');
-  select.disabled = false;
-  select.innerHTML = '<option value="">Cargando equipos...</option>';
+      const select = document.getElementById('select-team');
+      const statusDiv = document.getElementById('status');
 
-  try {
-    // Llamamos a nuestro nuevo endpoint 'calendario-next'
-    const resData = await apiFetch('calendario-next', {
-      temporada,
-      tipojuego,
-      competicion,
-      grupo,
-      jornada: 1
-    });
+      select.disabled = false;
+      select.innerHTML = '<option value="">Descargando liga y equipos...</option>';
+      statusDiv.innerText = "Descargando datos del calendario...";
 
-    const pageProps = resData?.pageProps || {};
-    const teamMap = new Map();
-
-    // Opción A: Buscar en la Clasificación si existe
-    if (Array.isArray(pageProps.clasificacion)) {
-      pageProps.clasificacion.forEach(item => {
-        const code = item.cod_equipo || item.codigo_equipo || item.id_equipo || item.codigo;
-        const name = item.nombre_equipo || item.equipo || item.nombre;
-        if (code && name) teamMap.set(String(code), name);
-      });
-    }
-
-    // Opción B: Si no había clasificación, extraer desde la lista de partidos/calendario
-    if (teamMap.size === 0) {
-      const partidos = pageProps.partidos || pageProps.jornada || pageProps.calendario || pageProps.matches || [];
-      if (Array.isArray(partidos)) {
-        partidos.forEach(m => {
-          const c1 = m.cod_equipo_local || m.codigo_equipo_local || m.id_equipo_local || m.cod_local;
-          const n1 = m.nombre_equipo_local || m.equipo_local || m.local;
-          const c2 = m.cod_equipo_visitante || m.codigo_equipo_visitante || m.id_equipo_visitante || m.cod_visitante;
-          const n2 = m.nombre_equipo_visitante || m.equipo_visitante || m.visitante;
-
-          if (c1 && n1) teamMap.set(String(c1), n1);
-          if (c2 && n2) teamMap.set(String(c2), n2);
+      try {
+        // 1. Descargar dataset completo sin parámetro de jornada
+        const resData = await apiFetch('calendario-next', {
+          temporada,
+          tipojuego,
+          competicion,
+          grupo
         });
-      }
-    }
 
-    // Opción C: Buscar en un listado directo de equipos si la RFFM lo incluye
-    if (teamMap.size === 0 && Array.isArray(pageProps.equipos)) {
-      pageProps.equipos.forEach(eq => {
-        const code = eq.cod_equipo || eq.codigo || eq.id;
-        const name = eq.nombre_equipo || eq.nombre || eq.equipo;
-        if (code && name) teamMap.set(String(code), name);
-      });
-    }
+        // 2. Guardar dataset global en memoria
+        window.leagueData = resData?.pageProps || resData || {};
+        
+        const teamMap = new Map();
 
-    // Verificar si encontramos equipos
-    if (teamMap.size === 0) {
-      console.log("Estructura de pageProps recibida:", pageProps);
-      select.innerHTML = '<option value="">Sin equipos detectados</option>';
-      return;
-    }
+        // 3. Algoritmo de escaneo profundo (Deep Extraction)
+        function extractTeamsDeep(obj) {
+          if (!obj || typeof obj !== 'object') return;
 
-    // Rellenar el desplegable con la lista ordenada
-    select.innerHTML = '<option value="">Selecciona tu Equipo</option>';
-    teamMap.forEach((nombre, codigo) => {
-      select.innerHTML += `<option value="${codigo}">${nombre}</option>`;
-    });
+          if (Array.isArray(obj)) {
+            obj.forEach(item => extractTeamsDeep(item));
+            return;
+          }
 
-  } catch (e) {
-    console.error("Error al procesar el JSON gigante de equipos:", e);
-    select.innerHTML = '<option value="">Error al cargar equipos</option>';
-  }
-}
+          // Escanear datos de partido (Local / Visitante)
+          const c1 = obj.cod_equipo_local || obj.codigo_equipo_local || obj.id_equipo_local || obj.cod_local;
+          const n1 = obj.nombre_equipo_local || obj.equipo_local || obj.local;
+          const c2 = obj.cod_equipo_visitante || obj.codigo_equipo_visitante || obj.id_equipo_visitante || obj.cod_visitante;
+          const n2 = obj.nombre_equipo_visitante || obj.equipo_visitante || obj.visitante;
 
-    // GUARDAR Y ADMINISTRAR FAVORITOS
-    function saveFavorite() {
-      const season = document.getElementById('select-season');
-      const gameType = document.getElementById('select-gametype');
-      const comp = document.getElementById('select-competition');
-      const group = document.getElementById('select-group');
-      const team = document.getElementById('select-team');
+          if (c1 && n1) teamMap.set(String(c1), String(n1).trim());
+          if (c2 && n2) teamMap.set(String(c2), String(n2).trim());
 
-      if (!team.value) {
-        alert("Por favor completa todos los desplegables");
-        return;
-      }
+          // Escanear lista directa de equipos o clasificación
+          const cDirect = obj.cod_equipo || obj.codigo_equipo || obj.id_equipo || obj.cod_club;
+          const nDirect = obj.nombre_equipo || obj.equipo || obj.nombre_club || obj.nombre;
 
-      const favorite = {
-        id: Date.now(),
-        teamName: team.options[team.selectedIndex].text,
-        compName: comp.options[comp.selectedIndex].text,
-        groupName: group.options[group.selectedIndex].text,
-        params: {
-          temporada: season.value,
-          tipojuego: gameType.value,
-          competicion: comp.value,
-          grupo: group.value,
-          equipo: team.value
+          if (cDirect && nDirect && typeof nDirect === 'string' && !['Home', 'Away'].includes(nDirect)) {
+            teamMap.set(String(cDirect), String(nDirect).trim());
+          }
+
+          // Recorrido recursivo de propiedades
+          Object.keys(obj).forEach(key => {
+            if (typeof obj[key] === 'object' && obj[key] !== null) {
+              extractTeamsDeep(obj[key]);
+            }
+          });
         }
-      };
 
-      const favorites = JSON.parse(localStorage.getItem('my_teams') || '[]');
-      favorites.push(favorite);
-      localStorage.setItem('my_teams', JSON.stringify(favorites));
+        // 4. Ejecutar barrido
+        extractTeamsDeep(window.leagueData);
 
-      renderFavorites();
-      showView('view-home');
-    }
+        // 5. Validar extracción
+        if (teamMap.size === 0) {
+          console.warn("Dataset descargado pero sin equipos extraídos:", window.leagueData);
+          select.innerHTML = '<option value="">Sin equipos detectados</option>';
+          statusDiv.innerText = "No se encontraron equipos en el grupo.";
+          return;
+        }
 
-    function renderFavorites() {
-      const favorites = JSON.parse(localStorage.getItem('my_teams') || '[]');
-      const container = document.getElementById('favorites-list');
+        // 6. Poblar selector de equipos ordenado alfabéticamente
+        select.innerHTML = '<option value="">Selecciona tu Equipo</option>';
+        
+        const sortedTeams = Array.from(teamMap.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+        sortedTeams.forEach(([codigo, nombre]) => {
+          select.innerHTML += `<option value="${codigo}">${nombre}</option>`;
+        });
 
-      if (favorites.length === 0) {
-        container.innerHTML = '<p style="color:#6b7280; text-align:center; margin-top:20px;">No tienes equipos añadidos. ¡Añade el primero!</p>';
-        return;
+        statusDiv.innerText = `Liga cargada. ${sortedTeams.length} equipos listos.`;
+        console.log("Dataset cargado correctamente:", window.leagueData);
+
+      } catch (e) {
+        console.error("Error al descargar la liga o extraer equipos:", e);
+        select.innerHTML = '<option value="">Error al cargar equipos</option>';
+        statusDiv.innerText = "Error en la conexión con la RFFM.";
       }
-
-      container.innerHTML = '';
-      favorites.forEach(fav => {
-        container.innerHTML += `
-          <div class="card">
-            <div onclick="openLeague('${fav.id}')" style="cursor:pointer; flex:1;">
-              <div class="card-title">${fav.teamName}</div>
-              <div class="card-subtitle">${fav.compName} - ${fav.groupName}</div>
-            </div>
-            <button class="btn btn-danger" onclick="deleteFavorite(${fav.id})">🗑️</button>
-          </div>
-        `;
-      });
-    }
-
-    function deleteFavorite(id) {
-      let favorites = JSON.parse(localStorage.getItem('my_teams') || '[]');
-      favorites = favorites.filter(f => f.id !== id);
-      localStorage.setItem('my_teams', JSON.stringify(favorites));
-      renderFavorites();
-    }
-
-    function openLeague(favId) {
-      const favorites = JSON.parse(localStorage.getItem('my_teams') || '[]');
-      currentLeague = favorites.find(f => f.id == favId);
-      showView('view-league');
     }
   </script>
 </body>
