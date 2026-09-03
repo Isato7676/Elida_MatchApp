@@ -133,6 +133,7 @@
     window.currentFav = null;
     window.currentJornada = 1;
     window.maxJornadas = 34;
+    window.estadiosDb = {};
 
     // Conexión centralizada al servidor proxy Vercel
     async function apiFetch(endpoint, params = {}) {
@@ -142,9 +143,17 @@
       return await response.json();
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       loadSeasons();
       renderFavorites();
+
+      // Cargar base de datos local de estadios si existe
+      try {
+        const res = await fetch('./estadios.json');
+        if (res.ok) window.estadiosDb = await res.json();
+      } catch (e) {
+        console.warn("No se pudo cargar estadios.json local");
+      }
     });
 
     // PESTAÑAS PRINCIPALES (INICIO)
@@ -223,6 +232,17 @@
       const favs = getFavorites();
       favs.push(newFav);
       saveFavorites(favs);
+
+      // Reinicializar cajas del formulario tras guardar
+      selComp.innerHTML = '<option value="">Selecciona Competición</option>';
+      selComp.disabled = true;
+      selGroup.innerHTML = '<option value="">Selecciona Grupo</option>';
+      selGroup.disabled = true;
+      selTeam.innerHTML = '<option value="">Selecciona tu Equipo</option>';
+      selTeam.disabled = true;
+      document.getElementById('btn-add').disabled = true;
+      document.getElementById('status').innerText = "";
+
       showMainTab('favs');
     }
 
@@ -425,13 +445,35 @@
       }
     }
 
-    // AUXILIAR: LIMPIADOR DE NOMBRE DE EQUIPO PARA MAPS
+    // AUXILIARES DE NAVEGACIÓN Y UBICACIÓN
     function limpiarNombreParaMaps(nombre) {
       if (!nombre) return '';
       return nombre
-        .replace(/['"]\s*[A-Z0-9]\s*['"]/gi, '') // Elimina comillas y letras de equipo tipo 'A', 'B', 'C'
-        .replace(/\b(infantil|alevin|cadete|juvenil)\b/gi, '') // Elimina categorías
+        .replace(/['"]\s*[A-Z0-9]\s*['"]/gi, '')
+        .replace(/\b(infantil|alevin|cadete|juvenil)\b/gi, '')
         .trim();
+    }
+
+    async function getEstadioUrl(codCampo, nombreCampo, nombreLocal) {
+      if (codCampo && window.estadiosDb[codCampo]) {
+        return window.estadiosDb[codCampo].google_maps_url;
+      }
+
+      if (codCampo) {
+        try {
+          const estadioData = await apiFetch('estadio', { id: codCampo });
+          if (estadioData && estadioData.google_maps_url) {
+            window.estadiosDb[codCampo] = estadioData;
+            return estadioData.google_maps_url;
+          }
+        } catch (e) {
+          console.error("Error obteniendo estadio del servidor", e);
+        }
+      }
+
+      const campoLimpio = (nombreCampo || '').replace(/\(HA\)|\(T\)|\(N\)/g, '').trim();
+      const equipoLimpio = limpiarNombreParaMaps(nombreLocal);
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${campoLimpio} ${equipoLimpio} Madrid`)}`;
     }
 
     // RENDERIZADO DE CALENDARIO
@@ -442,7 +484,7 @@
       renderMatches();
     }
 
-    function renderMatches() {
+    async function renderMatches() {
       document.getElementById('jornada-label').innerText = `Jornada ${window.currentJornada}`;
       const container = document.getElementById('matches-container');
       container.innerHTML = '';
@@ -460,7 +502,7 @@
       const matches = currentRoundObj.equipos;
       const myCode = String(window.currentFav?.equipo || '');
 
-      matches.forEach(m => {
+      for (const m of matches) {
         const local = m.equipo_local || 'Local';
         const cLocal = String(m.codigo_equipo_local || '');
         const visitante = m.equipo_visitante || 'Visitante';
@@ -472,14 +514,11 @@
         const fecha = m.fecha || '';
         const hora = m.hora || '';
         const campo = m.campo || '';
+        const codCampo = m.codigo_campo || m.cod_campo || '';
 
-        // Generar enlace limpio a Google Maps
         let campoHtml = '';
         if (campo) {
-          const campoLimpio = campo.replace(/\(HA\)|\(T\)|\(N\)/g, '').trim();
-          const equipoLimpio = limpiarNombreParaMaps(local);
-          const queryMaps = `${campoLimpio} ${equipoLimpio} Madrid`;
-          const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(queryMaps)}`;
+          const mapsUrl = await getEstadioUrl(codCampo, campo, local);
           campoHtml = `<a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="map-link">📍 ${campo}</a>`;
         }
 
@@ -500,7 +539,7 @@
             </div>
           </div>
         `;
-      });
+      }
     }
 
     // RENDERIZADO DE CLASIFICACIÓN
@@ -513,7 +552,6 @@
       const calendar = window.leagueData.calendar;
       let standings = calendar.clasificacion || calendar.standings || [];
 
-      // Cálculo dinámico si no viene en origen
       if (!Array.isArray(standings) || standings.length === 0) {
         const teamStats = new Map();
 
