@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Infantil Elida MatchApp</title>
-  <!-- Enlace al archivo CSS independiente -->
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -12,7 +11,7 @@
   <div class="container">
     <h1>Infantil Elida MatchApp</h1>
 
-    <!-- PANTALLA PRINCIPAL CON PESTAÑAS (MIS EQUIPOS / AÑADIR EQUIPO) -->
+    <!-- PANTALLA PRINCIPAL: MIS EQUIPOS / AÑADIR -->
     <div id="view-main">
       
       <div class="tabs">
@@ -20,16 +19,16 @@
         <button class="tab-btn" onclick="showMainTab('add')">➕ Añadir Equipo</button>
       </div>
 
-      <!-- PESTAÑA 1: LISTADO DE EQUIPOS -->
+      <!-- PESTAÑA 1: MIS EQUIPOS -->
       <div id="main-tab-favs" class="card">
         <div id="favs-container">
           <!-- Se puebla dinámicamente -->
         </div>
       </div>
 
-      <!-- PESTAÑA 2: FORMULARIO AÑADIR NUEVO EQUIPO -->
+      <!-- PESTAÑA 2: FORMULARIO AÑADIR EQUIPO -->
       <div id="main-tab-add" class="card" style="display: none;">
-        <h2 style="font-size:1rem; margin-top:0; color:#555;">Buscar y Seleccionar Equipo</h2>
+        <h2 style="font-size:1rem; margin-top:0; color:var(--text-muted);">Buscar y Seleccionar Equipo</h2>
         
         <div class="form-group">
           <label for="select-season">Temporada</label>
@@ -85,11 +84,11 @@
       </div>
 
       <div class="card" id="league-title-card">
-        <h2 id="league-team-title" style="margin:0; font-size:1.1rem; color:var(--primary);"></h2>
-        <div id="league-sub-title" style="font-size:0.8rem; color:#666; margin-top:2px;"></div>
+        <h2 id="league-team-title" style="margin:0; font-size:1.1rem; color:var(--primary-blue);"></h2>
+        <div id="league-sub-title" style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;"></div>
       </div>
 
-      <!-- VISTA CALENDARIO / JORNADAS -->
+      <!-- VISTA CALENDARIO -->
       <div id="tab-calendar" class="card">
         <div class="nav-jornada">
           <button class="btn-primary" onclick="changeJornada(-1)">◀ Anterior</button>
@@ -129,13 +128,13 @@
   </div>
 
   <script>
-    // Variables de estado
+    // Variables globales de la app
     window.leagueData = null;
     window.currentFav = null;
     window.currentJornada = 1;
     window.maxJornadas = 34;
 
-    // Conexión centralizada a la API / Proxy
+    // Conexión centralizada al servidor proxy Vercel
     async function apiFetch(endpoint, params = {}) {
       const query = new URLSearchParams({ endpoint, ...params }).toString();
       const response = await fetch(`/api/rffm?${query}`);
@@ -148,7 +147,7 @@
       renderFavorites();
     });
 
-    // PESTAÑAS PRINCIPALES
+    // PESTAÑAS PRINCIPALES (INICIO)
     function showMainTab(tab) {
       document.querySelectorAll('#view-main .tab-btn').forEach(b => b.classList.remove('active'));
       if (tab === 'favs') {
@@ -179,7 +178,7 @@
       if (favs.length === 0) {
         container.innerHTML = `
           <div style="text-align:center; padding:20px 10px;">
-            <p style="font-size:0.9rem; color:#666; margin-bottom:12px;">Aún no has guardado ningún equipo.</p>
+            <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:12px;">Aún no has guardado ningún equipo.</p>
             <button class="btn-primary" style="width:auto; padding:8px 16px;" onclick="showMainTab('add')">➕ Añadir mi primer equipo</button>
           </div>
         `;
@@ -239,7 +238,7 @@
       document.getElementById('btn-add').disabled = !selTeam.value;
     }
 
-    // DESPLEGABLES
+    // FORMULARIO DESPLEGABLE EN CASCADA
     async function loadSeasons() {
       const select = document.getElementById('select-season');
       try {
@@ -375,7 +374,7 @@
       }
     }
 
-    // ABRIR LIGA DETALLADA
+    // VISTA DETALLE LIGA
     async function openLeague(favIndex) {
       const favs = getFavorites();
       const fav = favs[favIndex];
@@ -404,7 +403,6 @@
       }
     }
 
-    // PESTAÑAS DETALLE LIGA
     function showLeagueTab(tabName) {
       if (tabName === 'home') {
         document.getElementById('view-league').style.display = 'none';
@@ -427,7 +425,7 @@
       }
     }
 
-    // RENDERIZAR JORNADAS
+    // RENDERIZADO DE CALENDARIO
     function changeJornada(delta) {
       window.currentJornada += delta;
       if (window.currentJornada < 1) window.currentJornada = 1;
@@ -446,7 +444,7 @@
       const currentRoundObj = rounds.find(r => String(r.codjornada) === String(window.currentJornada));
 
       if (!currentRoundObj || !Array.isArray(currentRoundObj.equipos)) {
-        container.innerHTML = `<p style="text-align:center; padding:20px; color:#888;">No hay partidos programados para la Jornada ${window.currentJornada}.</p>`;
+        container.innerHTML = `<p style="text-align:center; padding:20px; color:var(--text-muted);">No hay partidos programados para la Jornada ${window.currentJornada}.</p>`;
         return;
       }
 
@@ -483,7 +481,7 @@
       });
     }
 
-    // RENDERIZAR CLASIFICACIÓN
+    // RENDERIZADO DE CLASIFICACIÓN
     function renderStandings() {
       const tbody = document.getElementById('standings-body');
       tbody.innerHTML = '';
@@ -528,7 +526,7 @@
       }
 
       if (standings.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="padding:16px; color:#777;">No hay datos de clasificación.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="padding:16px; color:var(--text-muted);">No hay datos de clasificación.</td></tr>';
         return;
       }
 
