@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Es necesario indicar un endpoint' });
     }
 
-    // 1. ENDPOINT PARA CONSULTAR UN ESTADIO INDIVIDUAL (PARSER ROBUSTO)
+// 1. ENDPOINT PARA CONSULTAR UN ESTADIO INDIVIDUAL (EXTRACCIÓN DIRECTA POR HTML)
     if (endpoint === 'estadio') {
       const idCampo = queryParams.id;
       if (!idCampo) {
@@ -38,48 +38,38 @@ module.exports = async (req, res) => {
 
       const html = await responseCampo.text();
 
-      // Normalizar HTML: reemplazar entidades comunes, eliminar scripts/estilos y extraer líneas limpias
-      const textOnly = html
-        .replace(/&nbsp;/g, ' ')
-        .replace(/<script\b[^<]*>([\s\S]*?)<\/script>/gi, '')
-        .replace(/<style\b[^<]*>([\s\S]*?)<\/style>/gi, '')
-        .replace(/<[^>]+>/g, '\n');
+      // Función auxiliar para extraer el texto limpio que le sigue a una etiqueta
+      const extractField = (pattern) => {
+        const match = html.match(pattern);
+        if (!match) return '';
+        // Limpia etiquetas HTML internas, &nbsp; y saltos de línea
+        return match[1]
+          .replace(/<[^>]+>/g, '')
+          .replace(/&nbsp;/g, ' ')
+          .replace(/[:\r\n\t]/g, '')
+          .trim();
+      };
 
-      const lineas = textOnly
-        .split('\n')
-        .map(l => l.replace(/[:\t\r]/g, '').trim())
-        .filter(Boolean);
+      // 1. Extraer Nombre (del H1 o título de la ficha)
+      const nombre = extractField(/<h1[^>]*>([\s\S]*?)<\/h1>/i) || 
+                     extractField(/Nombre[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>/i) || 
+                     `Campo ${idCampo}`;
 
-      const info = {};
-      const clavesTarget = [
-        { key: 'Nombre', matches: ['nombre', 'campo', 'instalacion'] },
-        { key: 'Dirección', matches: ['direccion', 'domicilio'] },
-        { key: 'Localidad', matches: ['localidad', 'poblacion', 'municipio'] },
-        { key: 'CP', matches: ['cp', 'codigo postal', 'c.p.'] }
-      ];
+      // 2. Extraer Dirección
+      const direccion = extractField(/Dirección[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>/i) || 
+                        extractField(/Dirección:?[\s\S]*?<strong[^>]*>([\s\S]*?)<\/strong>/i) ||
+                        extractField(/Dirección[\s\S]*?<span[^>]*>([\s\S]*?)<\/span>/i);
 
-      for (let i = 0; i < lineas.length; i++) {
-        const lineaLower = lineas[i].toLowerCase();
-        
-        clavesTarget.forEach(target => {
-          const coincide = target.matches.some(m => lineaLower === m || lineaLower.startsWith(m));
-          if (coincide && lineas[i + 1] && !info[target.key]) {
-            info[target.key] = lineas[i + 1];
-          }
-        });
-      }
+      // 3. Extraer Localidad
+      const localidad = extractField(/Localidad[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>/i) || 
+                        extractField(/Localidad:?[\s\S]*?<strong[^>]*>([\s\S]*?)<\/strong>/i) ||
+                        'MADRID';
 
-      // Si no se encontró el nombre en el barrido por clave, buscar el primer H1 del HTML
-      let nombre = info['Nombre'];
-      if (!nombre) {
-        const h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
-        nombre = h1Match ? h1Match[1].replace(/<[^>]+>/g, '').trim() : `Campo ${idCampo}`;
-      }
+      // 4. Extraer Código Postal (Busca patrón de 5 dígitos que empiece por 28 o tras la palabra CP)
+      const cpMatch = html.match(/C\.?P\.?[\s\S]*?(28\d{3})/i) || html.match(/\b(28\d{3})\b/);
+      const cp = cpMatch ? cpMatch[1] : '';
 
-      const direccion = info['Dirección'] || '';
-      const localidad = info['Localidad'] || 'MADRID';
-      const cp = info['CP'] || '';
-
+      // Construcción limpia de la Query de Google Maps
       const querySearch = `${direccion || nombre}, ${cp} ${localidad} Madrid`.replace(/\s+/g, ' ').trim();
       const google_maps_url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(querySearch)}`;
 
