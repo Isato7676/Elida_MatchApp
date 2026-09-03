@@ -292,3 +292,24 @@ tr.highlight-team {
   text-align: center;
   font-weight: 600;
 }
+
+
+
+/* Estilo para el enlace de ubicación a Google Maps */
+.map-link {
+  color: var(--primary-blue);
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-block;
+  margin-top: 4px;
+  transition: opacity 0.2s;
+}
+
+.map-link:hover, .map-link:active {
+  text-decoration: underline;
+  opacity: 0.8;
+}
+
+
+
+
