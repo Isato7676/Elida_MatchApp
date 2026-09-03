@@ -433,53 +433,64 @@
       renderMatches();
     }
 
-    function renderMatches() {
-      document.getElementById('jornada-label').innerText = `Jornada ${window.currentJornada}`;
-      const container = document.getElementById('matches-container');
-      container.innerHTML = '';
+    
+function renderMatches() {
+  document.getElementById('jornada-label').innerText = `Jornada ${window.currentJornada}`;
+  const container = document.getElementById('matches-container');
+  container.innerHTML = '';
 
-      if (!window.leagueData || !window.leagueData.calendar) return;
+  if (!window.leagueData || !window.leagueData.calendar) return;
 
-      const rounds = window.leagueData.calendar.rounds || [];
-      const currentRoundObj = rounds.find(r => String(r.codjornada) === String(window.currentJornada));
+  const rounds = window.leagueData.calendar.rounds || [];
+  const currentRoundObj = rounds.find(r => String(r.codjornada) === String(window.currentJornada));
 
-      if (!currentRoundObj || !Array.isArray(currentRoundObj.equipos)) {
-        container.innerHTML = `<p style="text-align:center; padding:20px; color:var(--text-muted);">No hay partidos programados para la Jornada ${window.currentJornada}.</p>`;
-        return;
-      }
+  if (!currentRoundObj || !Array.isArray(currentRoundObj.equipos)) {
+    container.innerHTML = `<p style="text-align:center; padding:20px; color:var(--text-muted);">No hay partidos programados para la Jornada ${window.currentJornada}.</p>`;
+    return;
+  }
 
-      const matches = currentRoundObj.equipos;
-      const myCode = String(window.currentFav?.equipo || '');
+  const matches = currentRoundObj.equipos;
+  const myCode = String(window.currentFav?.equipo || '');
 
-      matches.forEach(m => {
-        const local = m.equipo_local || 'Local';
-        const cLocal = String(m.codigo_equipo_local || '');
-        const visitante = m.equipo_visitante || 'Visitante';
-        const cVisitante = String(m.codigo_equipo_visitante || '');
+  matches.forEach(m => {
+    const local = m.equipo_local || 'Local';
+    const cLocal = String(m.codigo_equipo_local || '');
+    const visitante = m.equipo_visitante || 'Visitante';
+    const cVisitante = String(m.codigo_equipo_visitante || '');
 
-        const gL = (m.goles_casa !== undefined && m.goles_casa !== '') ? m.goles_casa : '-';
-        const gV = (m.goles_visitante !== undefined && m.goles_visitante !== '') ? m.goles_visitante : '-';
+    const gL = (m.goles_casa !== undefined && m.goles_casa !== '') ? m.goles_casa : '-';
+    const gV = (m.goles_visitante !== undefined && m.goles_visitante !== '') ? m.goles_visitante : '-';
 
-        const fecha = m.fecha || '';
-        const hora = m.hora || '';
-        const campo = m.campo || '';
+    const fecha = m.fecha || '';
+    const hora = m.hora || '';
+    const campo = m.campo || '';
 
-        const isMyMatch = (cLocal && cLocal === myCode) || (cVisitante && cVisitante === myCode) || 
-                          local.toLowerCase().includes(window.currentFav?.nombreEquipo.toLowerCase()) || 
-                          visitante.toLowerCase().includes(window.currentFav?.nombreEquipo.toLowerCase());
-
-        container.innerHTML += `
-          <div class="match-card ${isMyMatch ? 'highlight' : ''}">
-            <div class="match-header">${fecha} ${hora ? ' - ' + hora : ''} ${campo ? '| ' + campo : ''}</div>
-            <div class="match-teams">
-              <span class="team-name">${local}</span>
-              <span class="score">${gL} - ${gV}</span>
-              <span class="team-name">${visitante}</span>
-            </div>
-          </div>
-        `;
-      });
+    // Generar enlace a Google Maps si existe nombre de campo
+    let campoHtml = '';
+    if (campo) {
+      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(campo + ' Madrid')}`;
+      campoHtml = `<a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="map-link">📍 ${campo}</a>`;
     }
+
+    const isMyMatch = (cLocal && cLocal === myCode) || (cVisitante && cVisitante === myCode) || 
+                      local.toLowerCase().includes(window.currentFav?.nombreEquipo.toLowerCase()) || 
+                      visitante.toLowerCase().includes(window.currentFav?.nombreEquipo.toLowerCase());
+
+    container.innerHTML += `
+      <div class="match-card ${isMyMatch ? 'highlight' : ''}">
+        <div class="match-header">
+          <span>${fecha} ${hora ? ' - ' + hora : ''}</span>
+          ${campoHtml ? '<br>' + campoHtml : ''}
+        </div>
+        <div class="match-teams">
+          <span class="team-name">${local}</span>
+          <span class="score">${gL} - ${gV}</span>
+          <span class="team-name">${visitante}</span>
+        </div>
+      </div>
+    `;
+  });
+}
 
     // RENDERIZADO DE CLASIFICACIÓN
     function renderStandings() {
