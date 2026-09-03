@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   // Permitir peticiones desde cualquier origen (CORS)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
       return res.status(200).json(data);
     }
 
-    // 5. NUEVO: OBTENER FICHA TÉCNICA Y DIRECCIÓN DEL ESTADIO
+    // 5. OBTENER FICHA TÉCNICA Y DIRECCIÓN DEL ESTADIO
     if (endpoint === 'estadio') {
       if (!id) return res.status(400).json({ error: 'Falta el ID del campo' });
 
@@ -85,4 +85,4 @@ export default async function handler(req, res) {
   } catch (error) {
     return res.status(500).json({ error: 'Error en el proxy de Vercel', details: error.message });
   }
-}
+};
