@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Es necesario indicar un endpoint' });
     }
 
-    // 1. ENDPOINT PARA CONSULTAR UN ESTADIO INDIVIDUAL
+    // 1. ENDPOINT PARA CONSULTAR UN ESTADIO INDIVIDUAL DE LA RFFM
     if (endpoint === 'estadio') {
       const idCampo = queryParams.id;
       if (!idCampo) {
@@ -33,7 +33,7 @@ module.exports = async (req, res) => {
       });
 
       if (!responseCampo.ok) {
-        return res.status(responseCampo.status).json({ error: `Error en RFFM: ${responseCampo.statusText}` });
+        return res.status(responseCampo.status).json({ error: `HTTP RFFM ${responseCampo.status}` });
       }
 
       const html = await responseCampo.text();
@@ -61,71 +61,43 @@ module.exports = async (req, res) => {
       });
     }
 
-    // 2. ENDPOINT PARA SINCRONIZAR Y GUARDAR ESTADIOS EN GITHUB
-    if (endpoint === 'sync-estadios') {
-      const { codigos } = req.body || {};
-      if (!Array.isArray(codigos) || codigos.length === 0) {
-        return res.status(400).json({ error: 'Se requiere una lista de códigos' });
-      }
-
+    // 2. ENDPOINT PARA ESCRIBIR EL DICCONARIO COMPLETO EN GITHUB
+    if (endpoint === 'save-estadios-github') {
+      const { nuevosEstadios } = req.body || {};
+      const token = process.env.GITHUB_TOKEN;
       const owner = process.env.VERCEL_GIT_REPO_OWNER;
       const repo = process.env.VERCEL_GIT_REPO_SLUG;
-      const token = process.env.GITHUB_TOKEN;
 
-      if (!token || !owner || !repo) {
-        return res.status(200).json({ message: 'Petición omitida: Falta GITHUB_TOKEN' });
+      if (!token) {
+        return res.status(400).json({ status: 400, message: 'ERROR: Falta GITHUB_TOKEN en Vercel' });
+      }
+
+      if (!owner || !repo) {
+        return res.status(400).json({ status: 400, message: 'ERROR: No se detectó VERCEL_GIT_REPO_OWNER o SLUG' });
       }
 
       const ghUrl = `https://api.github.com/repos/${owner}/${repo}/contents/estadios.json`;
-      const ghRes = await fetch(ghUrl, {
+      
+      // Obtener SHA del estadios.json actual
+      const getRes = await fetch(ghUrl, {
         headers: { 'Authorization': `token ${token}`, 'User-Agent': 'Vercel-App' }
       });
 
       let currentDb = {};
       let sha = '';
 
-      if (ghRes.ok) {
-        const ghData = await ghRes.json();
+      if (getRes.ok) {
+        const ghData = await getRes.json();
         sha = ghData.sha;
         const content = Buffer.from(ghData.content, 'base64').toString('utf-8');
-        currentDb = JSON.parse(content || '{}');
+        try { currentDb = JSON.parse(content); } catch(e) {}
       }
 
-      const faltantes = codigos.filter(code => !currentDb[code]);
-      if (faltantes.length === 0) {
-        return res.status(200).json({ message: 'Todos los estadios ya están registrados' });
-      }
+      // Fusionar diccionario
+      const updatedDb = { ...currentDb, ...nuevosEstadios };
+      const updatedContent = Buffer.from(JSON.stringify(updatedDb, null, 2)).toString('base64');
 
-      for (const idCampo of faltantes) {
-        try {
-          const responseCampo = await fetch(`https://www.rffm.es/campo/${idCampo}`, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
-          });
-
-          if (responseCampo.ok) {
-            const html = await responseCampo.text();
-            const getMatch = (regex) => {
-              const match = html.match(regex);
-              return match ? match[1].trim() : '';
-            };
-
-            const nombre = getMatch(/<h1[^>]*>([\s\S]*?)<\/h1>/i) || `Campo ${idCampo}`;
-            const direccion = getMatch(/Dirección[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>/i) || getMatch(/Dirección:?\s*<\/strong>\s*([^<]+)/i);
-            const localidad = getMatch(/Localidad[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>/i) || getMatch(/Localidad:?\s*<\/strong>\s*([^<]+)/i);
-            const cp = getMatch(/C\.P\.?[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>/i) || getMatch(/28\d{3}/);
-
-            const queryMaps = encodeURIComponent(`${direccion || nombre}, ${cp} ${localidad} Madrid`.trim());
-            const google_maps_url = `https://www.google.com/maps/search/?api=1&query=${queryMaps}`;
-
-            currentDb[idCampo] = { nombre, direccion, localidad, cp, google_maps_url };
-          }
-        } catch (e) {
-          console.warn(`Error al extraer campo ${idCampo}`, e);
-        }
-      }
-
-      const updatedContent = Buffer.from(JSON.stringify(currentDb, null, 2)).toString('base64');
-      await fetch(ghUrl, {
+      const putRes = await fetch(ghUrl, {
         method: 'PUT',
         headers: {
           'Authorization': `token ${token}`,
@@ -133,16 +105,29 @@ module.exports = async (req, res) => {
           'User-Agent': 'Vercel-App'
         },
         body: JSON.stringify({
-          message: 'auto: Actualización automática de estadios',
+          message: 'auto: Sincronización de estadios',
           content: updatedContent,
           sha: sha || undefined
         })
       });
 
-      return res.status(200).json({ message: 'Estadios sincronizados', añadidos: faltantes.length });
+      const putData = await putRes.json();
+
+      if (!putRes.ok) {
+        return res.status(putRes.status).json({ 
+          status: putRes.status, 
+          message: `Error GitHub API: ${putData.message || putRes.statusText}` 
+        });
+      }
+
+      return res.status(200).json({ 
+        status: 200, 
+        message: 'Guardado exitoso en GitHub', 
+        totalRegistros: Object.keys(updatedDb).length 
+      });
     }
 
-    // 3. RUTAS ESTÁNDAR
+    // 3. RUTAS ESTÁNDAR DE LA RFFM
     let targetUrl = '';
     const queryString = new URLSearchParams(queryParams).toString();
 
