@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Es necesario indicar un endpoint' });
     }
 
-    // 1. ENDPOINT PARA CONSULTAR UN ESTADIO INDIVIDUAL (ALGORITMO BASADO EN TU SCRIPT PYTHON)
+    // 1. ENDPOINT PARA CONSULTAR UN ESTADIO INDIVIDUAL (PARSER ROBUSTO)
     if (endpoint === 'estadio') {
       const idCampo = queryParams.id;
       if (!idCampo) {
@@ -38,35 +38,50 @@ module.exports = async (req, res) => {
 
       const html = await responseCampo.text();
 
-      // Limpiar HTML para obtener líneas de texto plano (equivalente a document.body.innerText.split('\n'))
+      // Normalizar HTML: reemplazar entidades comunes, eliminar scripts/estilos y extraer líneas limpias
       const textOnly = html
+        .replace(/&nbsp;/g, ' ')
         .replace(/<script\b[^<]*>([\s\S]*?)<\/script>/gi, '')
         .replace(/<style\b[^<]*>([\s\S]*?)<\/style>/gi, '')
         .replace(/<[^>]+>/g, '\n');
 
       const lineas = textOnly
         .split('\n')
-        .map(l => l.trim())
+        .map(l => l.replace(/[:\t\r]/g, '').trim())
         .filter(Boolean);
 
       const info = {};
-      const claves = ['Nombre', 'Código', 'Dirección', 'Localidad', 'Provincia', 'CP', 'Superficie de juego', 'Tipo'];
+      const clavesTarget = [
+        { key: 'Nombre', matches: ['nombre', 'campo', 'instalacion'] },
+        { key: 'Dirección', matches: ['direccion', 'domicilio'] },
+        { key: 'Localidad', matches: ['localidad', 'poblacion', 'municipio'] },
+        { key: 'CP', matches: ['cp', 'codigo postal', 'c.p.'] }
+      ];
 
       for (let i = 0; i < lineas.length; i++) {
-        for (let clave of claves) {
-          if (lineas[i].toLowerCase() === clave.toLowerCase() && lineas[i + 1]) {
-            info[clave] = lineas[i + 1];
+        const lineaLower = lineas[i].toLowerCase();
+        
+        clavesTarget.forEach(target => {
+          const coincide = target.matches.some(m => lineaLower === m || lineaLower.startsWith(m));
+          if (coincide && lineas[i + 1] && !info[target.key]) {
+            info[target.key] = lineas[i + 1];
           }
-        }
+        });
       }
 
-      const nombre = info['Nombre'] || `Campo ${idCampo}`;
+      // Si no se encontró el nombre en el barrido por clave, buscar el primer H1 del HTML
+      let nombre = info['Nombre'];
+      if (!nombre) {
+        const h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+        nombre = h1Match ? h1Match[1].replace(/<[^>]+>/g, '').trim() : `Campo ${idCampo}`;
+      }
+
       const direccion = info['Dirección'] || '';
-      const localidad = info['Localidad'] || '';
+      const localidad = info['Localidad'] || 'MADRID';
       const cp = info['CP'] || '';
 
-      const queryMaps = encodeURIComponent(`${direccion || nombre}, ${cp} ${localidad} Madrid`.trim());
-      const google_maps_url = `https://www.google.com/maps/search/?api=1&query=${queryMaps}`;
+      const querySearch = `${direccion || nombre}, ${cp} ${localidad} Madrid`.replace(/\s+/g, ' ').trim();
+      const google_maps_url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(querySearch)}`;
 
       return res.status(200).json({
         id: idCampo,
@@ -78,7 +93,7 @@ module.exports = async (req, res) => {
       });
     }
 
-    // 2. ENDPOINT PARA ESCRIBIR EL DICCIONARIO COMPLETO EN GITHUB
+    // 2. ENDPOINT PARA ESCRIBIR EN GITHUB
     if (endpoint === 'save-estadios-github') {
       const { nuevosEstadios } = req.body || {};
       const token = process.env.GITHUB_TOKEN;
@@ -142,7 +157,7 @@ module.exports = async (req, res) => {
       });
     }
 
-    // 3. RUTAS ESTÁNDAR DE LA RFFM
+    // 3. RUTAS ESTÁNDAR
     let targetUrl = '';
     const queryString = new URLSearchParams(queryParams).toString();
 
