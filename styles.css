@@ -292,7 +292,7 @@ th {
 /* CAJA DE LOG DE DEPURACIÓN */
 .debug-log-box {
   width: 100%;
-  height: 160px;
+  height: 200px;
   background-color: #1e1e1e;
   color: #00ff66;
   font-family: monospace;
