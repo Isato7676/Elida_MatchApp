@@ -1,18 +1,27 @@
 :root {
-  --primary: #004d98;
-  --primary-dark: #003366;
-  --secondary: #ed1c24;
-  --bg: #f4f6f9;
-  --card-bg: #ffffff;
-  --text: #333333;
-  --highlight: #e8f0fe;
-  --border-color: #e2e8f0;
+  /* Paleta Oscura Principal */
+  --bg-main: #0b1120;           /* Fondo general: Azul noche oscuro */
+  --card-bg: #1e293b;           /* Tarjetas generales: Gris pizarra oscuro */
+  --card-inner: #0f172a;         /* Fondo interno de partido: Azul marino oscuro */
+  --card-border: #334155;       /* Bordes finos */
+  
+  --primary-blue: #38bdf8;      /* Azul cian brillante para títulos */
+  --btn-blue: #2563eb;          /* Azul eléctrico para botones */
+  
+  /* Destacado de Tu Equipo */
+  --highlight-bg: #1e1b4b;      /* Fondo púrpura/índigo oscuro */
+  --highlight-border: #818cf8;  /* Borde brillante */
+  --highlight-text: #38bdf8;    /* Nombre del equipo en azul cian */
+  
+  --text-main: #f8fafc;         /* Texto principal en blanco */
+  --text-muted: #94a3b8;        /* Texto secundario en gris */
 }
 
+/* 1. Fondo Global de la Pantalla */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: var(--bg);
-  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-main) !important;
+  color: var(--text-main) !important;
   margin: 0;
   padding: 12px;
 }
@@ -22,85 +31,33 @@ body {
   margin: 0 auto;
 }
 
+/* 2. Título */
 h1 {
   text-align: center;
-  color: var(--primary);
-  font-size: 1.4rem;
-  margin: 10px 0 16px 0;
+  color: var(--primary-blue);
+  font-size: 1.5rem;
+  margin: 12px 0 20px 0;
   font-weight: 800;
 }
 
+/* 3. Contenedores y Tarjetas */
 .card {
   background: var(--card-bg);
   padding: 16px;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  border-radius: 14px;
+  border: 1px solid var(--card-border);
   margin-bottom: 16px;
 }
 
-.form-group {
-  margin-bottom: 12px;
-}
-
-label {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: bold;
-  margin-bottom: 4px;
-  color: #555;
-}
-
-select, button {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  background-color: #fff;
-  box-sizing: border-box;
-}
-
-select:disabled {
-  background-color: #e9ecef;
-  cursor: not-allowed;
-}
-
-.btn-primary {
-  background-color: var(--primary);
-  color: white;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  transition: background 0.2s;
-}
-
-.btn-primary:active {
-  background-color: var(--primary-dark);
-}
-
-.btn-primary:disabled {
-  background-color: #a0b2c6;
-}
-
-.status-msg {
-  font-size: 0.85rem;
-  color: var(--primary);
-  margin-top: 8px;
-  text-align: center;
-  font-weight: 500;
-}
-
-/* Pestañas de Navegación */
+/* 4. Pestañas Superiores */
 .tabs {
   display: flex;
   gap: 6px;
-  margin-bottom: 16px;
-  background: #e2e8f0;
-  padding: 4px;
-  border-radius: 10px;
+  margin-bottom: 18px;
+  background: #0f172a;
+  padding: 5px;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
 }
 
 .tab-btn {
@@ -109,111 +66,101 @@ select:disabled {
   border: none;
   background: transparent;
   font-size: 0.85rem;
-  font-weight: bold;
-  color: #64748b;
+  font-weight: 700;
+  color: var(--text-muted);
   cursor: pointer;
   border-radius: 8px;
-  transition: all 0.2s;
 }
 
 .tab-btn.active {
   background: var(--card-bg);
-  color: var(--primary);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  color: var(--primary-blue);
+  border: 1px solid var(--card-border);
 }
 
-/* Tarjetas de Favoritos */
-.fav-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px;
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  margin-bottom: 10px;
-  background: #ffffff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-}
-
-.fav-info {
-  flex-grow: 1;
-  cursor: pointer;
-}
-
-.fav-title {
-  font-weight: bold;
-  color: var(--primary);
-  font-size: 1rem;
-}
-
-.fav-sub {
-  font-size: 0.8rem;
-  color: #666;
-  margin-top: 2px;
-}
-
-.btn-del {
-  background: transparent;
+/* 5. Botones */
+.btn-primary {
+  background: var(--btn-blue);
+  color: #ffffff;
   border: none;
-  color: var(--secondary);
-  font-size: 1.2rem;
+  font-weight: 700;
   cursor: pointer;
-  width: auto;
-  padding: 0 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
 }
 
-/* Tarjetas de Partidos */
+/* 6. Tarjeta de Partido Estándar (Gris/Oscura) */
 .match-card {
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  padding: 12px;
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 14px;
   margin-bottom: 12px;
-  background: #fff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-}
-
-.match-card.highlight {
-  background-color: var(--highlight);
-  border-color: #b3d4fc;
+  background: var(--card-inner);
 }
 
 .match-header {
-  font-size: 0.75rem;
-  color: #64748b;
-  margin-bottom: 8px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
   text-align: center;
-  border-bottom: 1px solid #f1f5f9;
-  padding-bottom: 4px;
-  font-weight: 500;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 6px;
 }
 
 .match-teams {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-weight: bold;
-  font-size: 0.9rem;
+  font-weight: 600;
+  font-size: 0.92rem;
 }
 
 .team-name {
   flex: 1;
   text-align: center;
-  line-height: 1.2;
+  color: var(--text-main);
 }
 
 .score {
-  background: #1e293b;
-  color: #fff;
-  padding: 5px 10px;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  margin: 0 8px;
-  min-width: 40px;
+  background: #020617;
+  color: var(--primary-blue);
+  border: 1px solid var(--card-border);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  margin: 0 10px;
+  min-width: 45px;
   text-align: center;
-  font-weight: bold;
+  font-weight: 800;
 }
 
-/* Tabla de Clasificación */
+/* 7. TARJETA DESTACADA DE TU EQUIPO */
+.match-card.highlight {
+  background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%) !important;
+  border: 1.5px solid var(--highlight-border) !important;
+  position: relative;
+}
+
+.match-card.highlight::before {
+  content: "★ MI EQUIPO";
+  position: absolute;
+  top: -9px;
+  right: 14px;
+  background: var(--highlight-border);
+  color: #0f172a;
+  font-size: 0.65rem;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.match-card.highlight .team-name {
+  color: var(--highlight-text);
+  font-weight: 800;
+}
+
+/* 8. Tabla de Clasificación */
 .table-container {
   overflow-x: auto;
 }
@@ -221,44 +168,46 @@ select:disabled {
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
 }
 
 th, td {
-  padding: 10px 4px;
+  padding: 10px 6px;
   text-align: center;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 th {
-  background-color: #f8fafc;
-  color: #475569;
-  font-weight: bold;
+  background-color: #0f172a;
+  color: var(--text-muted);
+  font-weight: 700;
 }
 
 tr.highlight-team {
-  background-color: var(--highlight);
-  font-weight: bold;
+  background-color: rgba(129, 140, 248, 0.15) !important;
+  color: var(--primary-blue) !important;
+  font-weight: 800;
 }
 
 .nav-jornada {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .nav-jornada button {
   width: auto;
-  padding: 8px 14px;
 }
 
+/* Consola de Depuración */
 .console-log {
-  background: #1e1e1e;
-  color: #00ff00;
+  background: #020617;
+  color: #38bdf8;
+  border: 1px solid var(--card-border);
   font-family: monospace;
-  padding: 10px;
-  border-radius: 8px;
+  padding: 12px;
+  border-radius: 10px;
   font-size: 0.75rem;
   max-height: 120px;
   overflow-y: auto;
