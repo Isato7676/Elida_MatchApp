@@ -147,7 +147,6 @@
   </div>
 
   <script>
-    // Variables globales
     window.leagueData = null;
     window.currentFav = null;
     window.currentJornada = 1;
@@ -283,50 +282,59 @@
         saveFavorites(favs);
 
         if (window.leagueData && window.leagueData.calendar) {
-          logDebug("Analizando estadios en el calendario de la liga...");
-          const codigosCampos = new Set();
+          logDebug("Analizando estadios y equipos del calendario...");
           
+          // Mapear cada equipo con su código de campo local habitual
+          const campoPorEquipo = new Map();
           (window.leagueData.calendar.rounds || []).forEach(r => {
             (r.equipos || []).forEach(m => {
-              const cod = m.codigo_campo || m.cod_campo;
-              if (cod) codigosCampos.add(String(cod));
+              const eqLocal = m.equipo_local || 'Equipo Local';
+              const codCampo = m.codigo_campo || m.cod_campo;
+              if (codCampo && !campoPorEquipo.has(String(codCampo))) {
+                campoPorEquipo.set(String(codCampo), eqLocal);
+              }
             });
           });
 
-          const listaCodigos = Array.from(codigosCampos);
-          logDebug(`Total estadios únicos detectados en liga: ${listaCodigos.length}`);
+          const listaCodigos = Array.from(campoPorEquipo.keys());
+          logDebug(`Equipos/Estadios únicos mapeados en la liga: ${listaCodigos.length}`);
 
           const nuevosEstadiosExtraidos = {};
           let procesados = 0;
 
           for (const cod of listaCodigos) {
             procesados++;
+            const nombreEquipoAsociado = campoPorEquipo.get(cod);
             const pct = Math.min(80, 10 + Math.round((procesados / listaCodigos.length) * 70));
-            updateProgress(pct, `Extrayendo estadio ${procesados} de ${listaCodigos.length}...`);
+            
+            updateProgress(pct, `Procesando estadio ${procesados} de ${listaCodigos.length}...`);
+
+            logDebug("--------------------------------------------------");
+            logDebug(`[${procesados}/${listaCodigos.length}] EQUIPO: ${nombreEquipoAsociado}`);
+            logDebug(`      ID CAMPO EN CALENDARIO: ${cod}`);
 
             if (window.estadiosDb[cod]) {
-              logDebug(`[${procesados}/${listaCodigos.length}] Campo ID ${cod} ya existente en caché.`);
+              logDebug(`      -> Ya existía en caché local.`);
               continue;
             }
 
             try {
-              logDebug(`[${procesados}/${listaCodigos.length}] Consultando RFFM ID Campo: ${cod}...`);
               const dataEstadio = await apiFetch('estadio', { id: cod });
               
-              logDebug(`   -> Nombre: ${dataEstadio.nombre}`);
-              logDebug(`   -> Dirección: ${dataEstadio.direccion || 'N/D'}, ${dataEstadio.localidad || ''}`);
-              logDebug(`   -> Maps: ${dataEstadio.google_maps_url}`);
+              logDebug(`      -> NOMBRE ESTADIO RFFM: ${dataEstadio.nombre}`);
+              logDebug(`      -> DIRECCIÓN RFFM: ${dataEstadio.direccion || 'N/D'}`);
+              logDebug(`      -> LOCALIDAD: ${dataEstadio.localidad || 'N/D'} (${dataEstadio.cp || ''})`);
+              logDebug(`      -> MAPS URL: ${dataEstadio.google_maps_url}`);
 
               window.estadiosDb[cod] = dataEstadio;
               nuevosEstadiosExtraidos[cod] = dataEstadio;
             } catch (err) {
-              logDebug(`   -> ERROR al extraer campo ID ${cod}: ${err.message}`);
+              logDebug(`      -> ERROR al extraer campo ID ${cod}: ${err.message}`);
             }
           }
 
-          // Enviar objeto a GitHub
-          updateProgress(85, "Enviando catálogo a GitHub...");
-          logDebug("--- ENVIANDO A GITHUB ---");
+          logDebug("--------------------------------------------------");
+          updateProgress(85, "Enviando datos a GitHub...");
 
           if (Object.keys(nuevosEstadiosExtraidos).length > 0) {
             try {
@@ -337,7 +345,7 @@
               });
 
               logDebug(`Respuesta GitHub: HTTP ${resGh.status} - ${resGh.message}`);
-              if (resGh.totalRegistros) logDebug(`Total estadios en GitHub: ${resGh.totalRegistros}`);
+              if (resGh.totalRegistros) logDebug(`Total estadios acumulados en GitHub: ${resGh.totalRegistros}`);
             } catch (ghErr) {
               logDebug(`ERROR al guardar en GitHub: ${ghErr.message}`);
             }
