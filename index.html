@@ -136,9 +136,9 @@
     window.estadiosDb = {};
 
     // Conexión centralizada al servidor proxy Vercel
-    async function apiFetch(endpoint, params = {}) {
+    async function apiFetch(endpoint, params = {}, options = {}) {
       const query = new URLSearchParams({ endpoint, ...params }).toString();
-      const response = await fetch(`/api/rffm?${query}`);
+      const response = await fetch(`/api/rffm?${query}`, options);
       if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
       return await response.json();
     }
@@ -147,7 +147,7 @@
       loadSeasons();
       renderFavorites();
 
-      // Cargar estadios guardados en estadios.json local
+      // Cargar base de datos local estadios.json al iniciar
       try {
         const res = await fetch('./estadios.json');
         if (res.ok) window.estadiosDb = await res.json();
@@ -208,12 +208,13 @@
       });
     }
 
-    function addFavorite() {
+    async function addFavorite() {
       const selSeason = document.getElementById('select-season');
       const selGame = document.getElementById('select-gametype');
       const selComp = document.getElementById('select-competition');
       const selGroup = document.getElementById('select-group');
       const selTeam = document.getElementById('select-team');
+      const statusDiv = document.getElementById('status');
 
       if (!selTeam.value) return;
 
@@ -233,7 +234,30 @@
       favs.push(newFav);
       saveFavorites(favs);
 
-      // Reinicializar campos tras guardar
+      statusDiv.innerText = "Sincronizando estadios de la liga en el servidor...";
+
+      // Lanzar la sincronización de estadios de la liga en segundo plano
+      if (window.leagueData && window.leagueData.calendar) {
+        const codigosCampos = new Set();
+        (window.leagueData.calendar.rounds || []).forEach(r => {
+          (r.equipos || []).forEach(m => {
+            const cod = m.codigo_campo || m.cod_campo;
+            if (cod) codigosCampos.add(String(cod));
+          });
+        });
+
+        try {
+          await apiFetch('sync-estadios', {}, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ codigos: Array.from(codigosCampos) })
+          });
+        } catch (e) {
+          console.warn("No se pudieron sincronizar los estadios en el servidor", e);
+        }
+      }
+
+      // Resetear desplegables
       selComp.innerHTML = '<option value="">Selecciona Competición</option>';
       selComp.disabled = true;
       selGroup.innerHTML = '<option value="">Selecciona Grupo</option>';
@@ -241,7 +265,7 @@
       selTeam.innerHTML = '<option value="">Selecciona tu Equipo</option>';
       selTeam.disabled = true;
       document.getElementById('btn-add').disabled = true;
-      document.getElementById('status').innerText = "";
+      statusDiv.innerText = "";
 
       showMainTab('favs');
     }
@@ -401,20 +425,12 @@
       if (!fav) return;
 
       window.currentFav = fav;
-      window.currentJornada = 1;
 
       document.getElementById('view-main').style.display = 'none';
       document.getElementById('view-league').style.display = 'block';
 
       document.getElementById('league-team-title').innerText = fav.nombreEquipo;
       document.getElementById('league-sub-title').innerText = `${fav.nombreCompeticion} - ${fav.nombreGrupo}`;
-
-      // Mostrar feedback temporal mientras se descargan la liga y estadios
-      document.getElementById('matches-container').innerHTML = `
-        <div style="text-align:center; padding:30px; color:var(--text-muted);">
-          <p>⏳ Descargando calendario y ubicaciones de estadios...</p>
-        </div>
-      `;
 
       try {
         const resData = await apiFetch('calendario-next', {
@@ -425,8 +441,8 @@
         });
         window.leagueData = resData?.pageProps || resData || {};
 
-        // PRECARGA DE ESTADIOS DE TODA LA LIGA
-        await precargarEstadiosLiga();
+        // CALCULAR AUTOMÁTICAMENTE LA JORNADA ACTUAL SEGÚN LA FECHA
+        window.currentJornada = calcularJornadaActual();
 
         showLeagueTab('calendar');
       } catch (e) {
@@ -434,39 +450,54 @@
       }
     }
 
-    // FUNCIÓN PARA PRECARGAR TODOS LOS ESTADIOS DE LA LIGA EN UNA SOLA TANDA
-    async function precargarEstadiosLiga() {
-      if (!window.leagueData || !window.leagueData.calendar) return;
+    // ALGORITMO PARA DETERMINAR LA JORNADA ACTUAL CERCANA A HOY
+    function calcularJornadaActual() {
+      if (!window.leagueData || !window.leagueData.calendar) return 1;
 
-      const codigosCampos = new Set();
       const rounds = window.leagueData.calendar.rounds || [];
+      if (rounds.length === 0) return 1;
 
-      // Extraer todos los códigos de campo únicos de la temporada
+      window.maxJornadas = rounds.length;
+      const myCode = String(window.currentFav?.equipo || '');
+      const today = new Date();
+
+      let jornadaCalculada = 1;
+      let menorDiferencia = Infinity;
+
       rounds.forEach(r => {
-        (r.equipos || []).forEach(m => {
-          const cod = m.codigo_campo || m.cod_campo;
-          if (cod) codigosCampos.add(String(cod));
-        });
-      });
+        const numJornada = parseInt(r.codjornada || r.jornada || 1);
+        const equipos = r.equipos || [];
 
-      // Filtrar sólo los campos que no están en memoria
-      const faltantes = Array.from(codigosCampos).filter(cod => !window.estadiosDb[cod]);
+        // Buscar el partido de mi equipo en esta jornada
+        const miPartido = equipos.find(m => 
+          String(m.codigo_equipo_local) === myCode || 
+          String(m.codigo_equipo_visitante) === myCode ||
+          (m.equipo_local && m.equipo_local.toLowerCase().includes(window.currentFav?.nombreEquipo.toLowerCase()))
+        );
 
-      if (faltantes.length === 0) return;
+        const partidoEval = miPartido || equipos[0];
 
-      // Descargar las direcciones faltantes en paralelo
-      const peticiones = faltantes.map(async (cod) => {
-        try {
-          const data = await apiFetch('estadio', { id: cod });
-          if (data && data.google_maps_url) {
-            window.estadiosDb[cod] = data;
+        if (partidoEval && partidoEval.fecha) {
+          // Parsear fecha DD/MM/YYYY o YYYY-MM-DD
+          const partes = partidoEval.fecha.includes('/') ? partidoEval.fecha.split('/') : partidoEval.fecha.split('-');
+          let fechaPart;
+          if (partes.length === 3) {
+            fechaPart = partidoEval.fecha.includes('/') 
+              ? new Date(partes[2], partes[1] - 1, partes[0])
+              : new Date(partes[0], partes[1] - 1, partes[2]);
           }
-        } catch (e) {
-          console.warn(`No se pudo precargar el campo ${cod}`);
+
+          if (fechaPart && !isNaN(fechaPart)) {
+            const dif = Math.abs(today - fechaPart);
+            if (dif < menorDiferencia) {
+              menorDiferencia = dif;
+              jornadaCalculada = numJornada;
+            }
+          }
         }
       });
 
-      await Promise.all(peticiones);
+      return jornadaCalculada;
     }
 
     function showLeagueTab(tabName) {
@@ -501,18 +532,18 @@
     }
 
     function getEstadioUrlSync(codCampo, nombreCampo, nombreLocal) {
-      // 1. Lectura inmediata en memoria
+      // 1. Lectura ultra rápida de la memoria RAM
       if (codCampo && window.estadiosDb[codCampo]) {
         return window.estadiosDb[codCampo].google_maps_url;
       }
 
-      // 2. Fallback por nombre si no se encontró el código
+      // 2. Fallback dinámico por nombre si no existe el código
       const campoLimpio = (nombreCampo || '').replace(/\(HA\)|\(T\)|\(N\)/g, '').trim();
       const equipoLimpio = limpiarNombreParaMaps(nombreLocal);
       return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${campoLimpio} ${equipoLimpio} Madrid`)}`;
     }
 
-    // RENDERIZADO DE CALENDARIO (ULTRA RÁPIDO Y SÍNCRONO)
+    // RENDERIZADO DE CALENDARIO (SÍNCRONO E INSTANTÁNEO)
     function changeJornada(delta) {
       window.currentJornada += delta;
       if (window.currentJornada < 1) window.currentJornada = 1;
