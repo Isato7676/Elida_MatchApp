@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Es necesario indicar un endpoint' });
     }
 
-    // 1. ENDPOINT PARA CONSULTAR UN ESTADIO INDIVIDUAL DE LA RFFM
+    // 1. ENDPOINT PARA CONSULTAR UN ESTADIO INDIVIDUAL (ALGORITMO BASADO EN TU SCRIPT PYTHON)
     if (endpoint === 'estadio') {
       const idCampo = queryParams.id;
       if (!idCampo) {
@@ -38,15 +38,32 @@ module.exports = async (req, res) => {
 
       const html = await responseCampo.text();
 
-      const getMatch = (regex) => {
-        const match = html.match(regex);
-        return match ? match[1].trim() : '';
-      };
+      // Limpiar HTML para obtener líneas de texto plano (equivalente a document.body.innerText.split('\n'))
+      const textOnly = html
+        .replace(/<script\b[^<]*>([\s\S]*?)<\/script>/gi, '')
+        .replace(/<style\b[^<]*>([\s\S]*?)<\/style>/gi, '')
+        .replace(/<[^>]+>/g, '\n');
 
-      const nombre = getMatch(/<h1[^>]*>([\s\S]*?)<\/h1>/i) || `Campo ${idCampo}`;
-      const direccion = getMatch(/Dirección[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>/i) || getMatch(/Dirección:?\s*<\/strong>\s*([^<]+)/i);
-      const localidad = getMatch(/Localidad[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>/i) || getMatch(/Localidad:?\s*<\/strong>\s*([^<]+)/i);
-      const cp = getMatch(/C\.P\.?[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>/i) || getMatch(/28\d{3}/);
+      const lineas = textOnly
+        .split('\n')
+        .map(l => l.trim())
+        .filter(Boolean);
+
+      const info = {};
+      const claves = ['Nombre', 'Código', 'Dirección', 'Localidad', 'Provincia', 'CP', 'Superficie de juego', 'Tipo'];
+
+      for (let i = 0; i < lineas.length; i++) {
+        for (let clave of claves) {
+          if (lineas[i].toLowerCase() === clave.toLowerCase() && lineas[i + 1]) {
+            info[clave] = lineas[i + 1];
+          }
+        }
+      }
+
+      const nombre = info['Nombre'] || `Campo ${idCampo}`;
+      const direccion = info['Dirección'] || '';
+      const localidad = info['Localidad'] || '';
+      const cp = info['CP'] || '';
 
       const queryMaps = encodeURIComponent(`${direccion || nombre}, ${cp} ${localidad} Madrid`.trim());
       const google_maps_url = `https://www.google.com/maps/search/?api=1&query=${queryMaps}`;
@@ -61,7 +78,7 @@ module.exports = async (req, res) => {
       });
     }
 
-    // 2. ENDPOINT PARA ESCRIBIR EL DICCONARIO COMPLETO EN GITHUB
+    // 2. ENDPOINT PARA ESCRIBIR EL DICCIONARIO COMPLETO EN GITHUB
     if (endpoint === 'save-estadios-github') {
       const { nuevosEstadios } = req.body || {};
       const token = process.env.GITHUB_TOKEN;
@@ -78,7 +95,6 @@ module.exports = async (req, res) => {
 
       const ghUrl = `https://api.github.com/repos/${owner}/${repo}/contents/estadios.json`;
       
-      // Obtener SHA del estadios.json actual
       const getRes = await fetch(ghUrl, {
         headers: { 'Authorization': `token ${token}`, 'User-Agent': 'Vercel-App' }
       });
@@ -93,7 +109,6 @@ module.exports = async (req, res) => {
         try { currentDb = JSON.parse(content); } catch(e) {}
       }
 
-      // Fusionar diccionario
       const updatedDb = { ...currentDb, ...nuevosEstadios };
       const updatedContent = Buffer.from(JSON.stringify(updatedDb, null, 2)).toString('base64');
 
