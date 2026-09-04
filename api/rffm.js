@@ -18,8 +18,7 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Es necesario indicar un endpoint' });
     }
 
-// 1. ENDPOINT PARA CONSULTAR UN ESTADIO INDIVIDUAL (EXTRACCIÓN DIRECTA POR HTML)
-// 1. ENDPOINT PARA CONSULTAR UN ESTADIO INDIVIDUAL (EXTRACCIÓN VÍA __NEXT_DATA__)
+    // 1. ENDPOINT PARA CONSULTAR UN ESTADIO INDIVIDUAL (EXTRACCIÓN VÍA __NEXT_DATA__)
     if (endpoint === 'estadio') {
       const idCampo = queryParams.id;
       if (!idCampo) {
@@ -39,7 +38,7 @@ module.exports = async (req, res) => {
 
       const html = await responseCampo.text();
 
-      // Extraer el JSON interno de Next.js
+      // Buscamos el JSON interno que Next.js/RFFM incluye siempre en la página
       const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/i);
       
       let nombre = `Campo ${idCampo}`;
@@ -50,11 +49,21 @@ module.exports = async (req, res) => {
       if (nextDataMatch && nextDataMatch[1]) {
         try {
           const nextData = JSON.parse(nextDataMatch[1]);
-          // Navegar por la estructura de la página de la RFFM
-          const pageProps = nextData?.props?.pageProps || {};
-          const campoInfo = pageProps.campo || pageProps.estadio || pageProps.data || {};
+          
+          // Navegamos recursivamente por el objeto JSON de la RFFM para encontrar la ficha del campo
+          const findCampoObj = (obj) => {
+            if (!obj || typeof obj !== 'object') return null;
+            if (obj.direccion || obj.Dirección || obj.nombre_campo || obj.nombre_instalacion) return obj;
+            for (const key of Object.keys(obj)) {
+              const found = findCampoObj(obj[key]);
+              if (found) return found;
+            }
+            return null;
+          };
 
-          nombre = campoInfo.nombre || campoInfo.Nombre || nombre;
+          const campoInfo = findCampoObj(nextData) || {};
+
+          nombre = campoInfo.nombre || campoInfo.Nombre || campoInfo.nombre_campo || nombre;
           direccion = campoInfo.direccion || campoInfo.Dirección || campoInfo.domicilio || '';
           localidad = campoInfo.localidad || campoInfo.Localidad || campoInfo.poblacion || 'MADRID';
           cp = campoInfo.cp || campoInfo.CP || campoInfo.codigo_postal || '';
@@ -63,7 +72,7 @@ module.exports = async (req, res) => {
         }
       }
 
-      // Si por alguna razón no viniera en el JSON de Next, extraer el H1 como salvavidas para el nombre
+      // Si el nombre sigue siendo genérico, buscamos el primer H1 del HTML como respaldo
       if (nombre === `Campo ${idCampo}`) {
         const h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
         if (h1Match) nombre = h1Match[1].replace(/<[^>]+>/g, '').trim();
@@ -146,7 +155,7 @@ module.exports = async (req, res) => {
       });
     }
 
-    // 3. RUTAS ESTÁNDAR
+    // 3. RUTAS ESTÁNDAR DE LA RFFM
     let targetUrl = '';
     const queryString = new URLSearchParams(queryParams).toString();
 
