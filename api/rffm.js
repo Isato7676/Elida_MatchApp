@@ -19,6 +19,7 @@ module.exports = async (req, res) => {
     }
 
 // 1. ENDPOINT PARA CONSULTAR UN ESTADIO INDIVIDUAL (EXTRACCIÓN DIRECTA POR HTML)
+// 1. ENDPOINT PARA CONSULTAR UN ESTADIO INDIVIDUAL (EXTRACCIÓN VÍA __NEXT_DATA__)
     if (endpoint === 'estadio') {
       const idCampo = queryParams.id;
       if (!idCampo) {
@@ -38,38 +39,36 @@ module.exports = async (req, res) => {
 
       const html = await responseCampo.text();
 
-      // Función auxiliar para extraer el texto limpio que le sigue a una etiqueta
-      const extractField = (pattern) => {
-        const match = html.match(pattern);
-        if (!match) return '';
-        // Limpia etiquetas HTML internas, &nbsp; y saltos de línea
-        return match[1]
-          .replace(/<[^>]+>/g, '')
-          .replace(/&nbsp;/g, ' ')
-          .replace(/[:\r\n\t]/g, '')
-          .trim();
-      };
+      // Extraer el JSON interno de Next.js
+      const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/i);
+      
+      let nombre = `Campo ${idCampo}`;
+      let direccion = '';
+      let localidad = 'MADRID';
+      let cp = '';
 
-      // 1. Extraer Nombre (del H1 o título de la ficha)
-      const nombre = extractField(/<h1[^>]*>([\s\S]*?)<\/h1>/i) || 
-                     extractField(/Nombre[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>/i) || 
-                     `Campo ${idCampo}`;
+      if (nextDataMatch && nextDataMatch[1]) {
+        try {
+          const nextData = JSON.parse(nextDataMatch[1]);
+          // Navegar por la estructura de la página de la RFFM
+          const pageProps = nextData?.props?.pageProps || {};
+          const campoInfo = pageProps.campo || pageProps.estadio || pageProps.data || {};
 
-      // 2. Extraer Dirección
-      const direccion = extractField(/Dirección[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>/i) || 
-                        extractField(/Dirección:?[\s\S]*?<strong[^>]*>([\s\S]*?)<\/strong>/i) ||
-                        extractField(/Dirección[\s\S]*?<span[^>]*>([\s\S]*?)<\/span>/i);
+          nombre = campoInfo.nombre || campoInfo.Nombre || nombre;
+          direccion = campoInfo.direccion || campoInfo.Dirección || campoInfo.domicilio || '';
+          localidad = campoInfo.localidad || campoInfo.Localidad || campoInfo.poblacion || 'MADRID';
+          cp = campoInfo.cp || campoInfo.CP || campoInfo.codigo_postal || '';
+        } catch (e) {
+          console.warn("Error al parsear __NEXT_DATA__", e);
+        }
+      }
 
-      // 3. Extraer Localidad
-      const localidad = extractField(/Localidad[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>/i) || 
-                        extractField(/Localidad:?[\s\S]*?<strong[^>]*>([\s\S]*?)<\/strong>/i) ||
-                        'MADRID';
+      // Si por alguna razón no viniera en el JSON de Next, extraer el H1 como salvavidas para el nombre
+      if (nombre === `Campo ${idCampo}`) {
+        const h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+        if (h1Match) nombre = h1Match[1].replace(/<[^>]+>/g, '').trim();
+      }
 
-      // 4. Extraer Código Postal (Busca patrón de 5 dígitos que empiece por 28 o tras la palabra CP)
-      const cpMatch = html.match(/C\.?P\.?[\s\S]*?(28\d{3})/i) || html.match(/\b(28\d{3})\b/);
-      const cp = cpMatch ? cpMatch[1] : '';
-
-      // Construcción limpia de la Query de Google Maps
       const querySearch = `${direccion || nombre}, ${cp} ${localidad} Madrid`.replace(/\s+/g, ' ').trim();
       const google_maps_url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(querySearch)}`;
 
