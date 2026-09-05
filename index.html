@@ -13,7 +13,6 @@
 
     <!-- PANTALLA PRINCIPAL: MIS EQUIPOS / AÑADIR -->
     <div id="view-main">
-      
       <div class="tabs">
         <button class="tab-btn active" onclick="showMainTab('favs')">⭐ Mis Equipos</button>
         <button class="tab-btn" onclick="showMainTab('add')">➕ Añadir Equipo</button>
@@ -21,9 +20,7 @@
 
       <!-- PESTAÑA 1: MIS EQUIPOS -->
       <div id="main-tab-favs" class="card">
-        <div id="favs-container">
-          <!-- Se puebla dinámicamente -->
-        </div>
+        <div id="favs-container"></div>
       </div>
 
       <!-- PESTAÑA 2: FORMULARIO AÑADIR EQUIPO -->
@@ -75,12 +72,10 @@
         <label style="margin-top:16px;">Consola de Depuración (Log Sincronización):</label>
         <textarea id="debug-log" class="debug-log-box" readonly>Esperando acción...</textarea>
       </div>
-
     </div>
 
     <!-- PANTALLA DE DETALLE DE LIGA -->
     <div id="view-league" style="display: none;">
-      
       <div class="tabs">
         <button class="tab-btn active" onclick="showLeagueTab('home')">🏠 Inicio</button>
         <button class="tab-btn" onclick="showLeagueTab('calendar')">📅 Jornadas</button>
@@ -100,9 +95,7 @@
           <button class="btn-primary" onclick="changeJornada(1)">Siguiente ▶</button>
         </div>
 
-        <div id="matches-container">
-          <!-- Se puebla dinámicamente -->
-        </div>
+        <div id="matches-container"></div>
       </div>
 
       <!-- VISTA CLASIFICACIÓN -->
@@ -120,13 +113,10 @@
                 <th>PP</th>
               </tr>
             </thead>
-            <tbody id="standings-body">
-              <!-- Se puebla dinámicamente -->
-            </tbody>
+            <tbody id="standings-body"></tbody>
           </table>
         </div>
       </div>
-
     </div>
 
   </div>
@@ -176,7 +166,8 @@
       renderFavorites();
 
       try {
-        const res = await fetch('./estadios.json');
+        // Evitamos el caché estático agregando timestamp
+        const res = await fetch(`./estadios.json?v=${Date.now()}`);
         if (res.ok) {
           window.estadiosDb = await res.json();
           logDebug(`estadios.json local cargado: ${Object.keys(window.estadiosDb).length} registros.`);
@@ -284,7 +275,6 @@
         if (window.leagueData && window.leagueData.calendar) {
           logDebug("Analizando estadios y equipos del calendario...");
           
-          // Mapear cada equipo con su código de campo local habitual
           const campoPorEquipo = new Map();
           (window.leagueData.calendar.rounds || []).forEach(r => {
             (r.equipos || []).forEach(m => {
@@ -297,44 +287,40 @@
           });
 
           const listaCodigos = Array.from(campoPorEquipo.keys());
-          logDebug(`Equipos/Estadios únicos mapeados en la liga: ${listaCodigos.length}`);
+          logDebug(`Estadios únicos mapeados en la liga: ${listaCodigos.length}`);
+
+          const codigosFaltantes = listaCodigos.filter(cod => !window.estadiosDb[cod]);
+          logDebug(`Estadios pendientes de descargar: ${codigosFaltantes.length}`);
 
           const nuevosEstadiosExtraidos = {};
-          let procesados = 0;
 
-          for (const cod of listaCodigos) {
-            procesados++;
-            const nombreEquipoAsociado = campoPorEquipo.get(cod);
-            const pct = Math.min(80, 10 + Math.round((procesados / listaCodigos.length) * 70));
+          if (codigosFaltantes.length > 0) {
+            updateProgress(30, `Descargando ${codigosFaltantes.length} estadios en paralelo...`);
             
-            updateProgress(pct, `Procesando estadio ${procesados} de ${listaCodigos.length}...`);
+            // PARALELIZACIÓN CON PROMISE.ALL
+            const resultados = await Promise.all(
+              codigosFaltantes.map(async (cod) => {
+                const nombreEq = campoPorEquipo.get(cod);
+                try {
+                  const dataEstadio = await apiFetch('estadio', { id: cod });
+                  logDebug(`[OK] Estadio ID ${cod} (${nombreEq}): ${dataEstadio.nombre}`);
+                  return { cod, dataEstadio };
+                } catch (err) {
+                  logDebug(`[ERROR] Estadio ID ${cod}: ${err.message}`);
+                  return null;
+                }
+              })
+            );
 
-            logDebug("--------------------------------------------------");
-            logDebug(`[${procesados}/${listaCodigos.length}] EQUIPO: ${nombreEquipoAsociado}`);
-            logDebug(`      ID CAMPO EN CALENDARIO: ${cod}`);
-
-            if (window.estadiosDb[cod]) {
-              logDebug(`      -> Ya existía en caché local.`);
-              continue;
-            }
-
-            try {
-              const dataEstadio = await apiFetch('estadio', { id: cod });
-              
-              logDebug(`      -> NOMBRE ESTADIO RFFM: ${dataEstadio.nombre}`);
-              logDebug(`      -> DIRECCIÓN RFFM: ${dataEstadio.direccion || 'N/D'}`);
-              logDebug(`      -> LOCALIDAD: ${dataEstadio.localidad || 'N/D'} (${dataEstadio.cp || ''})`);
-              logDebug(`      -> MAPS URL: ${dataEstadio.google_maps_url}`);
-
-              window.estadiosDb[cod] = dataEstadio;
-              nuevosEstadiosExtraidos[cod] = dataEstadio;
-            } catch (err) {
-              logDebug(`      -> ERROR al extraer campo ID ${cod}: ${err.message}`);
-            }
+            resultados.forEach(res => {
+              if (res && res.dataEstadio) {
+                window.estadiosDb[res.cod] = res.dataEstadio;
+                nuevosEstadiosExtraidos[res.cod] = res.dataEstadio;
+              }
+            });
           }
 
-          logDebug("--------------------------------------------------");
-          updateProgress(85, "Enviando datos a GitHub...");
+          updateProgress(80, "Sincronizando con GitHub...");
 
           if (Object.keys(nuevosEstadiosExtraidos).length > 0) {
             try {
@@ -345,17 +331,16 @@
               });
 
               logDebug(`Respuesta GitHub: HTTP ${resGh.status} - ${resGh.message}`);
-              if (resGh.totalRegistros) logDebug(`Total estadios acumulados en GitHub: ${resGh.totalRegistros}`);
             } catch (ghErr) {
-              logDebug(`ERROR al guardar en GitHub: ${ghErr.message}`);
+              logDebug(`ERROR GitHub: ${ghErr.message}`);
             }
           } else {
-            logDebug("No hay estadios nuevos que enviar a GitHub.");
+            logDebug("No hay estadios nuevos. Todos existían previamente.");
           }
         }
 
-        updateProgress(100, "¡Proceso finalizado!");
-        await new Promise(r => setTimeout(r, 800));
+        updateProgress(100, "¡Equipo añadido con éxito!");
+        await new Promise(r => setTimeout(r, 600));
 
         selComp.innerHTML = '<option value="">Selecciona Competición</option>';
         selComp.disabled = true;
@@ -549,6 +534,29 @@
       }
     }
 
+    // PARSER Y CÁLCULO DE JORNADA PRÓXIMA / FUTURA
+    function parseFechaISO(fechaStr) {
+      if (!fechaStr || typeof fechaStr !== 'string') return null;
+      const partes = fechaStr.includes('/') ? fechaStr.split('/') : fechaStr.split('-');
+      if (partes.length !== 3) return null;
+
+      let dia, mes, anio;
+      if (partes[0].length === 4) {
+        // Formato YYYY-MM-DD
+        anio = parseInt(partes[0], 10);
+        mes = parseInt(partes[1], 10) - 1;
+        dia = parseInt(partes[2], 10);
+      } else {
+        // Formato DD/MM/YYYY
+        dia = parseInt(partes[0], 10);
+        mes = parseInt(partes[1], 10) - 1;
+        anio = parseInt(partes[2], 10);
+      }
+
+      const fecha = new Date(anio, mes, dia);
+      return isNaN(fecha.getTime()) ? null : fecha;
+    }
+
     function calcularJornadaActual() {
       if (!window.leagueData || !window.leagueData.calendar) return 1;
 
@@ -557,13 +565,15 @@
 
       window.maxJornadas = rounds.length;
       const myCode = String(window.currentFav?.equipo || '');
-      const today = new Date();
+      
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0); // Normalizar a medianoche
 
-      let jornadaCalculada = 1;
-      let menorDiferencia = Infinity;
+      let primeraJornadaFutura = null;
+      let ultimaJornadaPasada = 1;
 
-      rounds.forEach(r => {
-        const numJornada = parseInt(r.codjornada || r.jornada || 1);
+      for (const r of rounds) {
+        const numJornada = parseInt(r.codjornada || r.jornada || 1, 10);
         const equipos = r.equipos || [];
 
         const miPartido = equipos.find(m => 
@@ -575,25 +585,23 @@
         const partidoEval = miPartido || equipos[0];
 
         if (partidoEval && partidoEval.fecha) {
-          const partes = partidoEval.fecha.includes('/') ? partidoEval.fecha.split('/') : partidoEval.fecha.split('-');
-          let fechaPart;
-          if (partes.length === 3) {
-            fechaPart = partidoEval.fecha.includes('/') 
-              ? new Date(partes[2], partes[1] - 1, partes[0])
-              : new Date(partes[0], partes[1] - 1, partes[2]);
-          }
+          const fechaPartido = parseFechaISO(partidoEval.fecha);
+          if (fechaPartido) {
+            fechaPartido.setHours(0, 0, 0, 0);
 
-          if (fechaPart && !isNaN(fechaPart)) {
-            const dif = Math.abs(today - fechaPart);
-            if (dif < menorDiferencia) {
-              menorDiferencia = dif;
-              jornadaCalculada = numJornada;
+            if (fechaPartido >= hoy) {
+              // Encontrada la primera jornada que se juega HOY o en el FUTURO
+              primeraJornadaFutura = numJornada;
+              break; // Al estar ordenado, la primera superior/igual es la correcta
+            } else {
+              ultimaJornadaPasada = numJornada;
             }
           }
         }
-      });
+      }
 
-      return jornadaCalculada;
+      // Si no hay jornadas futuras (fin de liga), se abre la última jornada jugada
+      return primeraJornadaFutura !== null ? primeraJornadaFutura : ultimaJornadaPasada;
     }
 
     function showLeagueTab(tabName) {
