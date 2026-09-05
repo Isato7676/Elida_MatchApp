@@ -18,78 +18,83 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Es necesario indicar un endpoint' });
     }
 
-    // 1. ENDPOINT PARA CONSULTAR UN ESTADIO INDIVIDUAL (EXTRACCIÓN VÍA __NEXT_DATA__)
-    if (endpoint === 'estadio') {
-      const idCampo = queryParams.id;
-      if (!idCampo) {
-        return res.status(400).json({ error: 'Es necesario indicar el id del campo' });
-      }
+// 1. ENDPOINT PARA CONSULTAR UN ESTADIO INDIVIDUAL (EXTRACCIÓN VÍA __NEXT_DATA__)
+if (endpoint === 'estadio') {
+  const idCampo = queryParams.id;
+  if (!idCampo) {
+    return res.status(400).json({ error: 'Es necesario indicar el id del campo' });
+  }
 
-      const responseCampo = await fetch(`https://www.rffm.es/campo/${idCampo}`, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Referer': 'https://www.rffm.es/'
-        }
-      });
-
-      if (!responseCampo.ok) {
-        return res.status(responseCampo.status).json({ error: `HTTP RFFM ${responseCampo.status}` });
-      }
-
-      const html = await responseCampo.text();
-
-      // Buscamos el JSON interno que Next.js/RFFM incluye siempre en la página
-      const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/i);
-      
-      let nombre = `Campo ${idCampo}`;
-      let direccion = '';
-      let localidad = 'MADRID';
-      let cp = '';
-
-      if (nextDataMatch && nextDataMatch[1]) {
-        try {
-          const nextData = JSON.parse(nextDataMatch[1]);
-          
-          // Navegamos recursivamente por el objeto JSON de la RFFM para encontrar la ficha del campo
-          const findCampoObj = (obj) => {
-            if (!obj || typeof obj !== 'object') return null;
-            if (obj.direccion || obj.Dirección || obj.nombre_campo || obj.nombre_instalacion) return obj;
-            for (const key of Object.keys(obj)) {
-              const found = findCampoObj(obj[key]);
-              if (found) return found;
-            }
-            return null;
-          };
-
-          const campoInfo = findCampoObj(nextData) || {};
-
-          nombre = campoInfo.nombre || campoInfo.Nombre || campoInfo.nombre_campo || nombre;
-          direccion = campoInfo.direccion || campoInfo.Dirección || campoInfo.domicilio || '';
-          localidad = campoInfo.localidad || campoInfo.Localidad || campoInfo.poblacion || 'MADRID';
-          cp = campoInfo.cp || campoInfo.CP || campoInfo.codigo_postal || '';
-        } catch (e) {
-          console.warn("Error al parsear __NEXT_DATA__", e);
-        }
-      }
-
-      // Si el nombre sigue siendo genérico, buscamos el primer H1 del HTML como respaldo
-      if (nombre === `Campo ${idCampo}`) {
-        const h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
-        if (h1Match) nombre = h1Match[1].replace(/<[^>]+>/g, '').trim();
-      }
-
-      const querySearch = `${direccion || nombre}, ${cp} ${localidad} Madrid`.replace(/\s+/g, ' ').trim();
-      const google_maps_url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(querySearch)}`;
-
-      return res.status(200).json({
-        id: idCampo,
-        nombre,
-        direccion,
-        localidad,
-        cp,
-        google_maps_url
-      });
+  const responseCampo = await fetch(`https://www.rffm.es/campo/${idCampo}`, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Referer': 'https://www.rffm.es/'
     }
+  });
+
+  if (!responseCampo.ok) {
+    return res.status(responseCampo.status).json({ error: `HTTP RFFM ${responseCampo.status}` });
+  }
+
+  const html = await responseCampo.text();
+
+  // Buscamos el JSON interno que Next.js/RFFM incluye siempre en la página
+  const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/i);
+  
+  let nombre = `Campo ${idCampo}`;
+  let direccion = '';
+  let localidad = 'MADRID';
+  let cp = '';
+
+  if (nextDataMatch && nextDataMatch[1]) {
+    try {
+      const nextData = JSON.parse(nextDataMatch[1]);
+      
+      const findCampoObj = (obj) => {
+        if (!obj || typeof obj !== 'object') return null;
+        if (obj.direccion || obj.Dirección || obj.nombre_campo || obj.nombre_instalacion) return obj;
+        for (const key of Object.keys(obj)) {
+          const found = findCampoObj(obj[key]);
+          if (found) return found;
+        }
+        return null;
+      };
+
+      const campoInfo = findCampoObj(nextData) || {};
+
+      nombre = campoInfo.nombre || campoInfo.Nombre || campoInfo.nombre_campo || nombre;
+      direccion = campoInfo.direccion || campoInfo.Dirección || campoInfo.domicilio || '';
+      localidad = campoInfo.localidad || campoInfo.Localidad || campoInfo.poblacion || 'MADRID';
+      cp = campoInfo.cp || campoInfo.CP || campoInfo.codigo_postal || '';
+    } catch (e) {
+      console.warn("Error al parsear __NEXT_DATA__", e);
+    }
+  }
+
+  if (nombre === `Campo ${idCampo}`) {
+    const h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+    if (h1Match) nombre = h1Match[1].replace(/<[^>]+>/g, '').trim();
+  }
+
+  // --- FÓRMULA MEJORADA DE BÚSQUEDA ---
+  // Unimos Nombre del Estadio + Dirección + CP + Localidad
+  const partesConsulta = [nombre, direccion, cp, localidad, 'Madrid']
+    .map(texto => (texto || '').trim())
+    .filter(texto => texto.length > 0 && texto.toUpperCase() !== 'N/D');
+
+  // Eliminamos duplicados por si el nombre ya incluía la localidad o dirección
+  const querySearch = Array.from(new Set(partesConsulta)).join(' ').replace(/\s+/g, ' ').trim();
+  const google_maps_url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(querySearch)}`;
+
+  return res.status(200).json({
+    id: idCampo,
+    nombre,
+    direccion,
+    localidad,
+    cp,
+    google_maps_url
+  });
+}
 
     // 2. ENDPOINT PARA ESCRIBIR EN GITHUB
     if (endpoint === 'save-estadios-github') {
