@@ -1,11 +1,16 @@
 :root {
-  --primary-blue: #0d6efd;
-  --bg-color: #f8f9fa;
-  --card-bg: #ffffff;
-  --text-main: #212529;
-  --text-muted: #6c757d;
-  --border-color: #dee2e6;
-  --highlight-bg: #e7f1ff;
+  /* Paleta Dark Technical */
+  --bg-color: #0b1325;         /* Azul noche muy oscuro */
+  --card-bg: #162238;          /* Gris pizarra / Azul técnico */
+  --card-border: #20304c;      /* Borde fino para tarjetas */
+  --primary-blue: #3b82f6;     /* Azul eléctrico para botones y títulos */
+  --text-main: #e2e8f0;        /* Blanco roto para máxima lectura */
+  --text-muted: #94a3b8;      /* Gris medio para texto secundario */
+  --border-color: #2a3b5c;    /* Líneas divisorias */
+  
+  /* Resaltado Quirúrgico de TU EQUIPO */
+  --accent-neon: #06b6d4;      /* Cyan neón / Turquesa */
+  --highlight-bg: rgba(6, 182, 212, 0.12); /* Fondo sutil degradado */
 }
 
 body {
@@ -26,13 +31,15 @@ h1 {
   text-align: center;
   color: var(--primary-blue);
   margin-bottom: 16px;
+  letter-spacing: 0.5px;
 }
 
 .card {
   background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   margin-bottom: 16px;
 }
 
@@ -45,18 +52,21 @@ h1 {
 .tab-btn {
   flex: 1;
   padding: 10px;
-  border: none;
-  background: #e9ecef;
+  border: 1px solid var(--border-color);
+  background: #111a2e;
   color: var(--text-muted);
   font-weight: bold;
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.9rem;
+  transition: all 0.2s ease;
 }
 
 .tab-btn.active {
   background: var(--primary-blue);
   color: white;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
 }
 
 .form-group {
@@ -76,13 +86,14 @@ select {
   padding: 10px;
   border-radius: 8px;
   border: 1px solid var(--border-color);
-  background-color: white;
+  background-color: #0f172a;
+  color: var(--text-main);
   font-size: 0.95rem;
 }
 
 select:disabled {
-  background-color: #e9ecef;
-  opacity: 0.7;
+  background-color: #1a2333;
+  opacity: 0.5;
 }
 
 .btn-primary {
@@ -99,7 +110,8 @@ select:disabled {
 }
 
 .btn-primary:disabled {
-  background-color: #adb5bd;
+  background-color: #334155;
+  color: #64748b;
   cursor: not-allowed;
 }
 
@@ -111,6 +123,7 @@ select:disabled {
   border: 1px solid var(--border-color);
   border-radius: 8px;
   margin-bottom: 8px;
+  background: #111a2e;
 }
 
 .fav-info {
@@ -130,7 +143,7 @@ select:disabled {
 }
 
 .btn-del {
-  background: #dc3545;
+  background: #ef4444;
   color: white;
   border: none;
   border-radius: 50%;
@@ -140,17 +153,21 @@ select:disabled {
   font-weight: bold;
 }
 
+/* TARJETA DE PARTIDO ESTÁNDAR */
 .match-card {
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  padding: 10px;
+  padding: 12px;
   margin-bottom: 10px;
-  background: white;
+  background: #111a2e;
 }
 
+/* RESALTADO DE TU PARTIDO EN LA JORNADA */
 .match-card.highlight {
-  border-left: 4px solid var(--primary-blue);
+  border: 1px solid var(--accent-neon);
+  border-left: 5px solid var(--accent-neon);
   background: var(--highlight-bg);
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.15);
 }
 
 .match-header {
@@ -161,7 +178,7 @@ select:disabled {
 }
 
 .map-link {
-  color: var(--primary-blue);
+  color: var(--accent-neon);
   text-decoration: none;
   font-weight: bold;
 }
@@ -180,8 +197,16 @@ select:disabled {
 
 .score {
   font-weight: bold;
-  padding: 0 8px;
+  padding: 2px 10px;
+  background: #0f172a;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
   color: var(--primary-blue);
+}
+
+.match-card.highlight .score {
+  color: var(--accent-neon);
+  border-color: var(--accent-neon);
 }
 
 .nav-jornada {
@@ -208,18 +233,24 @@ table {
 }
 
 th, td {
-  padding: 8px 4px;
+  padding: 10px 4px;
   border-bottom: 1px solid var(--border-color);
 }
 
 th {
-  background: #f1f3f5;
+  background: #111a2e;
   color: var(--text-muted);
 }
 
+/* RESALTADO DE TU EQUIPO EN LA CLASIFICACIÓN */
 .highlight-team {
   background-color: var(--highlight-bg);
+  color: var(--accent-neon);
   font-weight: bold;
+}
+
+.highlight-team td {
+  border-bottom: 1px solid var(--accent-neon);
 }
 
 /* MODAL Y BARRA DE PROGRESO */
@@ -229,9 +260,9 @@ th {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -239,13 +270,14 @@ th {
 }
 
 .modal-content {
-  background: white;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 16px;
   padding: 24px;
   width: 85%;
   max-width: 380px;
   text-align: center;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
 .modal-icon {
@@ -263,24 +295,26 @@ th {
 .progress-bar-bg {
   width: 100%;
   height: 12px;
-  background-color: #e9ecef;
+  background-color: #0f172a;
   border-radius: 6px;
   overflow: hidden;
   margin: 16px 0 8px 0;
+  border: 1px solid var(--border-color);
 }
 
 .progress-bar-fill {
   height: 100%;
   width: 0%;
-  background-color: var(--primary-blue);
+  background-color: var(--accent-neon);
   border-radius: 6px;
   transition: width 0.3s ease;
+  box-shadow: 0 0 8px var(--accent-neon);
 }
 
 .progress-percent {
   font-weight: bold;
   font-size: 1.1rem;
-  color: var(--primary-blue);
+  color: var(--accent-neon);
 }
 
 .progress-status {
@@ -292,14 +326,14 @@ th {
 /* CAJA DE LOG DE DEPURACIÓN */
 .debug-log-box {
   width: 100%;
-  height: 200px;
-  background-color: #1e1e1e;
-  color: #00ff66;
+  height: 180px;
+  background-color: #050a14;
+  color: #22d3ee;
   font-family: monospace;
   font-size: 0.75rem;
   padding: 10px;
   border-radius: 8px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
   box-sizing: border-box;
   overflow-y: scroll;
   white-space: pre-wrap;
