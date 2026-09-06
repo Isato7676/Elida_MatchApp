@@ -851,7 +851,12 @@
       updateProgress(40, "Descargando acta de la RFFM...");
 
       try {
-        const gameData = await apiFetch('partido-detalle', { acta: codActa });
+        const gameData = await apiFetch('partido-detalle', { 
+          acta: codActa,
+          temporada: window.currentFav?.temporada || '',
+          competicion: window.currentFav?.competicion || '',
+          grupo: window.currentFav?.grupo || ''
+        });
         
         updateProgress(100, "¡Cargado con éxito!");
         await new Promise(r => setTimeout(r, 200));
