@@ -192,3 +192,42 @@ if (endpoint === 'estadio') {
     });
   }
 };
+
+// ENDPOINT PARA OBTENER LOS DETALLES COMPLETOS DE UN PARTIDO
+if (endpoint === 'partido-detalle') {
+  const codActa = queryParams.acta || queryParams.id;
+  if (!codActa) {
+    return res.status(400).json({ error: 'Falta el código de acta/partido' });
+  }
+
+  // 1. Descargamos el HTML del partido directamente en memoria RAM
+  const responseActa = await fetch(`https://www.rffm.es/acta/${codActa}`, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Referer': 'https://www.rffm.es/'
+    }
+  });
+
+  if (!responseActa.ok) {
+    return res.status(responseActa.status).json({ error: `Error RFFM ${responseActa.status}` });
+  }
+
+  const html = await responseActa.text();
+
+  // 2. Extraemos el __NEXT_DATA__
+  const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/i);
+
+  if (!nextDataMatch || !nextDataMatch[1]) {
+    return res.status(404).json({ error: 'No se encontró la estructura de datos del partido' });
+  }
+
+  const nextData = JSON.parse(nextDataMatch[1]);
+  const gameData = nextData.props?.pageProps?.game;
+
+  if (!gameData) {
+    return res.status(404).json({ error: 'Estructura del partido no válida' });
+  }
+
+  // 3. Devolvemos el JSON de datos directamente al navegador
+  return res.status(200).json(gameData);
+}
