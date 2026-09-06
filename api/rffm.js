@@ -18,45 +18,47 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Es necesario indicar un endpoint' });
     }
 
-    // 1. NUEVO ENDPOINT PARA EXTRAER LOS DETALLES DEL PARTIDO VÍA ACTA/HTML
-if (endpoint === 'partido-detalle') {
-  const codActa = queryParams.acta || queryParams.id;
-  const { temporada, competicion, grupo } = queryParams;
+    // 1. ENDPOINT PARA EXTRAER LOS DETALLES DEL PARTIDO VÍA ACTA/HTML
+    if (endpoint === 'partido-detalle') {
+      const codActa = queryParams.acta || queryParams.id;
 
-  if (!codActa) {
-    return res.status(400).json({ error: 'Es necesario indicar el código de acta' });
-  }
+      if (!codActa) {
+        return res.status(400).json({ error: 'Es necesario indicar el código de acta' });
+      }
 
-  // Construimos la URL EXACTA que usa la RFFM
-  const targetUrl = `https://www.rffm.es/acta-partido/${codActa}?temporada=${temporada || ''}&competicion=${competicion || ''}&grupo=${grupo || ''}`;
+      // Construcción flexible de la URL para evitar 404 por query params vacíos
+      const hasParams = queryParams.temporada || queryParams.competicion || queryParams.grupo;
+      const targetUrl = hasParams 
+        ? `https://www.rffm.es/acta-partido/${codActa}?temporada=${queryParams.temporada || ''}&competicion=${queryParams.competicion || ''}&grupo=${queryParams.grupo || ''}`
+        : `https://www.rffm.es/acta-partido/${codActa}`;
 
-  const responseActa = await fetch(targetUrl, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Referer': 'https://www.rffm.es/'
+      const responseActa = await fetch(targetUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Referer': 'https://www.rffm.es/'
+        }
+      });
+
+      if (!responseActa.ok) {
+        return res.status(responseActa.status).json({ error: `HTTP RFFM ${responseActa.status}` });
+      }
+
+      const html = await responseActa.text();
+      const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/i);
+
+      if (!nextDataMatch || !nextDataMatch[1]) {
+        return res.status(404).json({ error: 'No se encontró __NEXT_DATA__ en la página del acta' });
+      }
+
+      const nextData = JSON.parse(nextDataMatch[1]);
+      const gameData = nextData.props?.pageProps?.game;
+
+      if (!gameData) {
+        return res.status(404).json({ error: 'No se encontraron los datos del partido (game)' });
+      }
+
+      return res.status(200).json(gameData);
     }
-  });
-
-  if (!responseActa.ok) {
-    return res.status(responseActa.status).json({ error: `HTTP RFFM ${responseActa.status}` });
-  }
-
-  const html = await responseActa.text();
-  const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/i);
-
-  if (!nextDataMatch || !nextDataMatch[1]) {
-    return res.status(404).json({ error: 'No se encontró __NEXT_DATA__ en la página del acta' });
-  }
-
-  const nextData = JSON.parse(nextDataMatch[1]);
-  const gameData = nextData.props?.pageProps?.game;
-
-  if (!gameData) {
-    return res.status(404).json({ error: 'No se encontraron los datos del partido (game)' });
-  }
-
-  return res.status(200).json(gameData);
-}
 
     // 2. ENDPOINT PARA CONSULTAR UN ESTADIO INDIVIDUAL (EXTRACCIÓN VÍA __NEXT_DATA__)
     if (endpoint === 'estadio') {
