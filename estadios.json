@@ -1,4 +1,68 @@
 {
+  "302": {
+    "id": "302",
+    "nombre": "PVO. DE ALUCHE (HA)",
+    "direccion": "AVDA. DE LAS AGUILAS 14",
+    "localidad": "Madrid",
+    "cp": "28044",
+    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=PVO.%20DE%20ALUCHE%20(HA)%20AVDA.%20DE%20LAS%20AGUILAS%2014%2028044%20Madrid"
+  },
+  "309": {
+    "id": "309",
+    "nombre": "BARRIO GOYA (HA)",
+    "direccion": "CALLE DE PABLO SARASATE 1",
+    "localidad": "Madrid",
+    "cp": "28047",
+    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=BARRIO%20GOYA%20(HA)%20CALLE%20DE%20PABLO%20SARASATE%201%2028047%20Madrid"
+  },
+  "404": {
+    "id": "404",
+    "nombre": "COTORRUELO I (HA)",
+    "direccion": "VIA LUSITANA 5",
+    "localidad": "Madrid",
+    "cp": "28025",
+    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=COTORRUELO%20I%20(HA)%20VIA%20LUSITANA%205%2028025%20Madrid"
+  },
+  "405": {
+    "id": "405",
+    "nombre": "COTORRUELO II (HA)",
+    "direccion": "VIA LUSITANA 5",
+    "localidad": "Madrid",
+    "cp": "28025",
+    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=COTORRUELO%20II%20(HA)%20VIA%20LUSITANA%205%2028025%20Madrid"
+  },
+  "406": {
+    "id": "406",
+    "nombre": "COTORRUELO III (HA)",
+    "direccion": "VIA LUSITANA 5",
+    "localidad": "Madrid",
+    "cp": "28025",
+    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=COTORRUELO%20III%20(HA)%20VIA%20LUSITANA%205%2028025%20Madrid"
+  },
+  "410": {
+    "id": "410",
+    "nombre": "LA MINA (HA)",
+    "direccion": "CALLE MONSEÑOR ÓSCAR ROMERO 41",
+    "localidad": "Madrid",
+    "cp": "28025",
+    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=LA%20MINA%20(HA)%20CALLE%20MONSE%C3%91OR%20%C3%93SCAR%20ROMERO%2041%2028025%20Madrid"
+  },
+  "411": {
+    "id": "411",
+    "nombre": "ROMAN VALERO (HA)",
+    "direccion": "CALLE DE ANDRES ARTEAGA 1",
+    "localidad": "Madrid",
+    "cp": "28026",
+    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=ROMAN%20VALERO%20(HA)%20CALLE%20DE%20ANDRES%20ARTEAGA%201%2028026%20Madrid"
+  },
+  "505": {
+    "id": "505",
+    "nombre": "IDB PARQUE LINEAL DEL MANZANARES - VICTORIANO GONZALEZ (H.A.)",
+    "direccion": "CALLE DE EMBAJADORES 340 (CAJA MÁGICA)",
+    "localidad": "Madrid",
+    "cp": "28053",
+    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=IDB%20PARQUE%20LINEAL%20DEL%20MANZANARES%20-%20VICTORIANO%20GONZALEZ%20(H.A.)%20CALLE%20DE%20EMBAJADORES%20340%20(CAJA%20M%C3%81GICA)%2028053%20Madrid"
+  },
   "511": {
     "id": "511",
     "nombre": "PVO. OROQUIETA - FELIX RUBIO (HA)",
@@ -23,6 +87,22 @@
     "cp": "28031",
     "google_maps_url": "https://www.google.com/maps/search/?api=1&query=LA%20UNION%20-%20VALLECAS%20VILLA%20(HA)%20CALLE%20DE%20ENRIQUE%20GARC%C3%8DA%20%C3%81LVAREZ%2065%2028031%20Madrid"
   },
+  "606": {
+    "id": "606",
+    "nombre": "PVO. LA ELIPA (HA)",
+    "direccion": "CALLE ALCALDE GARRIDO JUARISTI 17",
+    "localidad": "Madrid",
+    "cp": "28030",
+    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=PVO.%20LA%20ELIPA%20(HA)%20CALLE%20ALCALDE%20GARRIDO%20JUARISTI%2017%2028030%20Madrid"
+  },
+  "608": {
+    "id": "608",
+    "nombre": "PVO. LILI ALVAREZ (HA)",
+    "direccion": "CALLE DEL CAÑÓN DE RÍO LOBOS 6",
+    "localidad": "Madrid",
+    "cp": "28030",
+    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=PVO.%20LILI%20ALVAREZ%20(HA)%20CALLE%20DEL%20CA%C3%91%C3%93N%20DE%20R%C3%8DO%20LOBOS%206%2028030%20Madrid"
+  },
   "613": {
     "id": "613",
     "nombre": "JOSE DURAN (HA)",
@@ -38,6 +118,38 @@
     "localidad": "Madrid",
     "cp": "28053",
     "google_maps_url": "https://www.google.com/maps/search/?api=1&query=ASOC.%20VEC.%20DEL%20POZO%20(HA)%20CALLE%20REGUERA%20DE%20TOMATEROS%20S%2FN%2028053%20Madrid"
+  },
+  "622": {
+    "id": "622",
+    "nombre": "SAN LAMBERTO - Bº. LA ELIPA (HA)",
+    "direccion": "CALLE SAN LAMBERTO S/N",
+    "localidad": "Madrid",
+    "cp": "28017",
+    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=SAN%20LAMBERTO%20-%20B%C2%BA.%20LA%20ELIPA%20(HA)%20CALLE%20SAN%20LAMBERTO%20S%2FN%2028017%20Madrid"
+  },
+  "626": {
+    "id": "626",
+    "nombre": "COLEGIO ARAGON (HA)",
+    "direccion": "CALLE ANTONIO MAIRENA 23",
+    "localidad": "Madrid",
+    "cp": "28038",
+    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=COLEGIO%20ARAGON%20(HA)%20CALLE%20ANTONIO%20MAIRENA%2023%2028038%20Madrid"
+  },
+  "704": {
+    "id": "704",
+    "nombre": "C.D.M. LA CONCEPCIÓN (HA)",
+    "direccion": "CALLE DE JOSÉ DEL HIERRO 5",
+    "localidad": "Madrid",
+    "cp": "28027",
+    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=C.D.M.%20LA%20CONCEPCI%C3%93N%20(HA)%20CALLE%20DE%20JOS%C3%89%20DEL%20HIERRO%205%2028027%20Madrid"
+  },
+  "1413": {
+    "id": "1413",
+    "nombre": "GETAFE - CIUDAD DPTVA. 2 (HA)",
+    "direccion": "CALLE MARÍA MONTESSORI S/N",
+    "localidad": "Getafe",
+    "cp": "28903",
+    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=GETAFE%20-%20CIUDAD%20DPTVA.%202%20(HA)%20CALLE%20MAR%C3%8DA%20MONTESSORI%20S%2FN%2028903%20Getafe%20Madrid"
   },
   "1499": {
     "id": "1499",
@@ -111,6 +223,14 @@
     "cp": "28041",
     "google_maps_url": "https://www.google.com/maps/search/?api=1&query=LA%20PERLA%20(HA)%20CALLE%20DEL%20CORIND%C3%93N%203%2028041%20Madrid"
   },
+  "560057": {
+    "id": "560057",
+    "nombre": "ARROYO MEDIA LEGUA (Trece Rosas) - (HA)",
+    "direccion": "AVENIDA DE LAS TRECE ROSAS 2",
+    "localidad": "Madrid",
+    "cp": "28017",
+    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=ARROYO%20MEDIA%20LEGUA%20(Trece%20Rosas)%20-%20(HA)%20AVENIDA%20DE%20LAS%20TRECE%20ROSAS%202%2028017%20Madrid"
+  },
   "681029": {
     "id": "681029",
     "nombre": "CIUDAD DPTVA. FUND. RAYO VALLECANO 2 (HA)",
@@ -118,5 +238,37 @@
     "localidad": "Madrid",
     "cp": "28051",
     "google_maps_url": "https://www.google.com/maps/search/?api=1&query=CIUDAD%20DPTVA.%20FUND.%20RAYO%20VALLECANO%202%20(HA)%20CALLE%20DEL%20RAYO%20VALLECANO%20DE%20MADRID%202%2028051%20Madrid"
+  },
+  "2302719": {
+    "id": "2302719",
+    "nombre": "CIUDAD DPTVA. FUND. RAYO VALLECANO 1 (HA)",
+    "direccion": "CALLE DEL RAYO VALLECANO DE MADRID 2",
+    "localidad": "Madrid",
+    "cp": "28051",
+    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=CIUDAD%20DPTVA.%20FUND.%20RAYO%20VALLECANO%201%20(HA)%20CALLE%20DEL%20RAYO%20VALLECANO%20DE%20MADRID%202%2028051%20Madrid"
+  },
+  "3361210": {
+    "id": "3361210",
+    "nombre": "COTORRUELO 2-B",
+    "direccion": "VIA LUSITANA 5",
+    "localidad": "Madrid",
+    "cp": "28025",
+    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=COTORRUELO%202-B%20VIA%20LUSITANA%205%2028025%20Madrid"
+  },
+  "4532965": {
+    "id": "4532965",
+    "nombre": "COLEGIO J.H. NEWMAN (HA)",
+    "direccion": "AVDA. DE GUADALAJARA 28",
+    "localidad": "Madrid",
+    "cp": "28032",
+    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=COLEGIO%20J.H.%20NEWMAN%20(HA)%20AVDA.%20DE%20GUADALAJARA%2028%2028032%20Madrid"
+  },
+  "12287019": {
+    "id": "12287019",
+    "nombre": "GETAFE - CIUDAD DPTVA. 3 (HA)",
+    "direccion": "CALLE MARIA MONTESORRI S/N",
+    "localidad": "Getafe",
+    "cp": "28903",
+    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=GETAFE%20-%20CIUDAD%20DPTVA.%203%20(HA)%20CALLE%20MARIA%20MONTESORRI%20S%2FN%2028903%20Getafe%20Madrid"
   }
 }
