@@ -18,85 +18,124 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Es necesario indicar un endpoint' });
     }
 
-// 1. ENDPOINT PARA CONSULTAR UN ESTADIO INDIVIDUAL (EXTRACCIÓN VÍA __NEXT_DATA__)
-if (endpoint === 'estadio') {
-  const idCampo = queryParams.id;
-  if (!idCampo) {
-    return res.status(400).json({ error: 'Es necesario indicar el id del campo' });
-  }
+    // 1. NUEVO ENDPOINT PARA EXTRAER LOS DETALLES DEL PARTIDO VÍA ACTA/HTML
+    if (endpoint === 'partido-detalle') {
+      const codActa = queryParams.acta || queryParams.id;
+      if (!codActa) {
+        return res.status(400).json({ error: 'Es necesario indicar el código de acta' });
+      }
 
-  const responseCampo = await fetch(`https://www.rffm.es/campo/${idCampo}`, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Referer': 'https://www.rffm.es/'
-    }
-  });
-
-  if (!responseCampo.ok) {
-    return res.status(responseCampo.status).json({ error: `HTTP RFFM ${responseCampo.status}` });
-  }
-
-  const html = await responseCampo.text();
-
-  // Buscamos el JSON interno que Next.js/RFFM incluye siempre en la página
-  const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/i);
-  
-  let nombre = `Campo ${idCampo}`;
-  let direccion = '';
-  let localidad = 'MADRID';
-  let cp = '';
-
-  if (nextDataMatch && nextDataMatch[1]) {
-    try {
-      const nextData = JSON.parse(nextDataMatch[1]);
-      
-      const findCampoObj = (obj) => {
-        if (!obj || typeof obj !== 'object') return null;
-        if (obj.direccion || obj.Dirección || obj.nombre_campo || obj.nombre_instalacion) return obj;
-        for (const key of Object.keys(obj)) {
-          const found = findCampoObj(obj[key]);
-          if (found) return found;
+      // Descarga servidor a servidor del HTML de la RFFM
+      const responseActa = await fetch(`https://www.rffm.es/acta/${codActa}`, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Referer': 'https://www.rffm.es/'
         }
-        return null;
-      };
+      });
 
-      const campoInfo = findCampoObj(nextData) || {};
+      if (!responseActa.ok) {
+        return res.status(responseActa.status).json({ error: `HTTP RFFM ${responseActa.status}` });
+      }
 
-      nombre = campoInfo.nombre || campoInfo.Nombre || campoInfo.nombre_campo || nombre;
-      direccion = campoInfo.direccion || campoInfo.Dirección || campoInfo.domicilio || '';
-      localidad = campoInfo.localidad || campoInfo.Localidad || campoInfo.poblacion || 'MADRID';
-      cp = campoInfo.cp || campoInfo.CP || campoInfo.codigo_postal || '';
-    } catch (e) {
-      console.warn("Error al parsear __NEXT_DATA__", e);
+      const html = await responseActa.text();
+
+      // Extracción del JSON embebido __NEXT_DATA__
+      const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/i);
+
+      if (!nextDataMatch || !nextDataMatch[1]) {
+        return res.status(404).json({ error: 'No se encontró la estructura de datos __NEXT_DATA__' });
+      }
+
+      let gameData = null;
+      try {
+        const nextData = JSON.parse(nextDataMatch[1]);
+        gameData = nextData.props?.pageProps?.game;
+      } catch (e) {
+        return res.status(500).json({ error: 'Error al parsear el JSON del acta' });
+      }
+
+      if (!gameData) {
+        return res.status(404).json({ error: 'No se encontró el objeto "game" en los datos del partido' });
+      }
+
+      return res.status(200).json(gameData);
     }
-  }
 
-  if (nombre === `Campo ${idCampo}`) {
-    const h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
-    if (h1Match) nombre = h1Match[1].replace(/<[^>]+>/g, '').trim();
-  }
+    // 2. ENDPOINT PARA CONSULTAR UN ESTADIO INDIVIDUAL (EXTRACCIÓN VÍA __NEXT_DATA__)
+    if (endpoint === 'estadio') {
+      const idCampo = queryParams.id;
+      if (!idCampo) {
+        return res.status(400).json({ error: 'Es necesario indicar el id del campo' });
+      }
 
-  // --- FÓRMULA MEJORADA DE BÚSQUEDA ---
-  // Unimos Nombre del Estadio + Dirección + CP + Localidad
-  const partesConsulta = [nombre, direccion, cp, localidad, 'Madrid']
-    .map(texto => (texto || '').trim())
-    .filter(texto => texto.length > 0 && texto.toUpperCase() !== 'N/D');
+      const responseCampo = await fetch(`https://www.rffm.es/campo/${idCampo}`, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Referer': 'https://www.rffm.es/'
+        }
+      });
 
-  // Eliminamos duplicados por si el nombre ya incluía la localidad o dirección
-  const querySearch = Array.from(new Set(partesConsulta)).join(' ').replace(/\s+/g, ' ').trim();
-  const google_maps_url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(querySearch)}`;
+      if (!responseCampo.ok) {
+        return res.status(responseCampo.status).json({ error: `HTTP RFFM ${responseCampo.status}` });
+      }
 
-  return res.status(200).json({
-    id: idCampo,
-    nombre,
-    direccion,
-    localidad,
-    cp,
-    google_maps_url
-  });
-}
+      const html = await responseCampo.text();
 
-    // 2. ENDPOINT PARA ESCRIBIR EN GITHUB
+      const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/i);
+      
+      let nombre = `Campo ${idCampo}`;
+      let direccion = '';
+      let localidad = 'MADRID';
+      let cp = '';
+
+      if (nextDataMatch && nextDataMatch[1]) {
+        try {
+          const nextData = JSON.parse(nextDataMatch[1]);
+          
+          const findCampoObj = (obj) => {
+            if (!obj || typeof obj !== 'object') return null;
+            if (obj.direccion || obj.Dirección || obj.nombre_campo || obj.nombre_instalacion) return obj;
+            for (const key of Object.keys(obj)) {
+              const found = findCampoObj(obj[key]);
+              if (found) return found;
+            }
+            return null;
+          };
+
+          const campoInfo = findCampoObj(nextData) || {};
+
+          nombre = campoInfo.nombre || campoInfo.Nombre || campoInfo.nombre_campo || nombre;
+          direccion = campoInfo.direccion || campoInfo.Dirección || campoInfo.domicilio || '';
+          localidad = campoInfo.localidad || campoInfo.Localidad || campoInfo.poblacion || 'MADRID';
+          cp = campoInfo.cp || campoInfo.CP || campoInfo.codigo_postal || '';
+        } catch (e) {
+          console.warn("Error al parsear __NEXT_DATA__", e);
+        }
+      }
+
+      if (nombre === `Campo ${idCampo}`) {
+        const h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+        if (h1Match) nombre = h1Match[1].replace(/<[^>]+>/g, '').trim();
+      }
+
+      const partesConsulta = [nombre, direccion, cp, localidad, 'Madrid']
+        .map(texto => (texto || '').trim())
+        .filter(texto => texto.length > 0 && texto.toUpperCase() !== 'N/D');
+
+      const querySearch = Array.from(new Set(partesConsulta)).join(' ').replace(/\s+/g, ' ').trim();
+      const google_maps_url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(querySearch)}`;
+
+      return res.status(200).json({
+        id: idCampo,
+        nombre,
+        direccion,
+        localidad,
+        cp,
+        google_maps_url
+      });
+    }
+
+    // 3. ENDPOINT PARA ESCRIBIR EN GITHUB
     if (endpoint === 'save-estadios-github') {
       const { nuevosEstadios } = req.body || {};
       const token = process.env.GITHUB_TOKEN;
@@ -160,7 +199,7 @@ if (endpoint === 'estadio') {
       });
     }
 
-    // 3. RUTAS ESTÁNDAR DE LA RFFM
+    // 4. RUTAS ESTÁNDAR DE LA RFFM
     let targetUrl = '';
     const queryString = new URLSearchParams(queryParams).toString();
 
@@ -192,42 +231,3 @@ if (endpoint === 'estadio') {
     });
   }
 };
-
-// ENDPOINT PARA OBTENER LOS DETALLES COMPLETOS DE UN PARTIDO
-if (endpoint === 'partido-detalle') {
-  const codActa = queryParams.acta || queryParams.id;
-  if (!codActa) {
-    return res.status(400).json({ error: 'Falta el código de acta/partido' });
-  }
-
-  // 1. Descargamos el HTML del partido directamente en memoria RAM
-  const responseActa = await fetch(`https://www.rffm.es/acta/${codActa}`, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Referer': 'https://www.rffm.es/'
-    }
-  });
-
-  if (!responseActa.ok) {
-    return res.status(responseActa.status).json({ error: `Error RFFM ${responseActa.status}` });
-  }
-
-  const html = await responseActa.text();
-
-  // 2. Extraemos el __NEXT_DATA__
-  const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/i);
-
-  if (!nextDataMatch || !nextDataMatch[1]) {
-    return res.status(404).json({ error: 'No se encontró la estructura de datos del partido' });
-  }
-
-  const nextData = JSON.parse(nextDataMatch[1]);
-  const gameData = nextData.props?.pageProps?.game;
-
-  if (!gameData) {
-    return res.status(404).json({ error: 'Estructura del partido no válida' });
-  }
-
-  // 3. Devolvemos el JSON de datos directamente al navegador
-  return res.status(200).json(gameData);
-}
