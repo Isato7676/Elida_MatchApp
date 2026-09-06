@@ -119,6 +119,72 @@
       </div>
     </div>
 
+    <!-- PANTALLA DE DETALLE DE PARTIDO -->
+    <div id="view-match-detail" style="display: none;">
+      <div class="tabs">
+        <button class="tab-btn" onclick="closeMatchDetail()">◀ Volver al Calendario</button>
+      </div>
+
+      <!-- MARCADOR Y CABECERA DEL PARTIDO -->
+      <div class="card" style="text-align:center; padding: 16px;">
+        <div id="match-detail-comp" style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:10px;"></div>
+        
+        <div style="display:flex; align-items:center; justify-content:space-around; margin:10px 0;">
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
+            <img id="match-detail-logo-local" src="" alt="" style="width:48px; height:48px; object-fit:contain; margin-bottom:4px; display:none;">
+            <span id="match-detail-name-local" style="font-weight:bold; font-size:0.95rem;"></span>
+          </div>
+          <div id="match-detail-score" style="font-size:1.8rem; font-weight:bold; padding:4px 12px; background:var(--bg-color, #f0f4f8); border-radius:8px;">-</div>
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
+            <img id="match-detail-logo-visita" src="" alt="" style="width:48px; height:48px; object-fit:contain; margin-bottom:4px; display:none;">
+            <span id="match-detail-name-visita" style="font-weight:bold; font-size:0.95rem;"></span>
+          </div>
+        </div>
+
+        <div id="match-detail-venue" style="font-size:0.8rem; color:var(--text-muted); margin-top:8px;"></div>
+      </div>
+
+      <!-- PESTAÑAS INTERNAS DE DETALLE -->
+      <div class="tabs" style="margin-top:12px;">
+        <button class="tab-btn active" onclick="showMatchSubTab('lineups')">👕 Alineaciones</button>
+        <button class="tab-btn" onclick="showMatchSubTab('events')">⏱️ Eventos</button>
+        <button class="tab-btn" onclick="showMatchSubTab('info')">📋 Ficha Técnica</button>
+      </div>
+
+      <!-- SUB-PESTAÑA 1: ALINEACIONES -->
+      <div id="match-tab-lineups" class="card">
+        <h3 id="match-title-local" style="margin:0 0 10px 0; font-size:0.95rem; color:var(--primary-blue);"></h3>
+        <div style="font-weight:bold; font-size:0.85rem; color:var(--text-muted);">Titulares</div>
+        <ul id="match-list-local-titulares" style="list-style:none; padding:0; margin:0 0 15px 0;"></ul>
+        <div style="font-weight:bold; font-size:0.85rem; color:var(--text-muted);">Suplentes</div>
+        <ul id="match-list-local-suplentes" style="list-style:none; padding:0; margin:0 0 20px 0;"></ul>
+
+        <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
+
+        <h3 id="match-title-visita" style="margin:0 0 10px 0; font-size:0.95rem; color:var(--primary-blue);"></h3>
+        <div style="font-weight:bold; font-size:0.85rem; color:var(--text-muted);">Titulares</div>
+        <ul id="match-list-visita-titulares" style="list-style:none; padding:0; margin:0 0 15px 0;"></ul>
+        <div style="font-weight:bold; font-size:0.85rem; color:var(--text-muted);">Suplentes</div>
+        <ul id="match-list-visita-suplentes" style="list-style:none; padding:0; margin:0;"></ul>
+      </div>
+
+      <!-- SUB-PESTAÑA 2: EVENTOS (CON MARCADOR EVOLUTIVO) -->
+      <div id="match-tab-events" class="card" style="display:none;">
+        <h3 style="margin:0 0 10px 0; font-size:0.95rem; color:var(--primary-blue);">Cronología del Partido</h3>
+        <ul id="match-list-events" style="list-style:none; padding:0; margin:0;"></ul>
+      </div>
+
+      <!-- SUB-PESTAÑA 3: FICHA TÉCNICA -->
+      <div id="match-tab-info" class="card" style="display:none;">
+        <h3 style="margin:0 0 10px 0; font-size:0.95rem; color:var(--primary-blue);">Cuerpo Arbitral</h3>
+        <ul id="match-list-arbitros" style="list-style:none; padding:0; margin:0 0 15px 0;"></ul>
+
+        <h3 style="margin:0 0 10px 0; font-size:0.95rem; color:var(--primary-blue);">Cuerpo Técnico</h3>
+        <p style="font-size:0.85rem; margin:4px 0;"><strong>Entrenador Local:</strong> <span id="match-coach-local">-</span></p>
+        <p style="font-size:0.85rem; margin:4px 0;"><strong>Entrenador Visitante:</strong> <span id="match-coach-visita">-</span></p>
+      </div>
+    </div>
+
   </div>
 
   <!-- MODAL BARRERA DE CARGA -->
@@ -166,7 +232,6 @@
       renderFavorites();
 
       try {
-        // Evitamos el caché estático agregando timestamp
         const res = await fetch(`./estadios.json?v=${Date.now()}`);
         if (res.ok) {
           window.estadiosDb = await res.json();
@@ -297,7 +362,6 @@
           if (codigosFaltantes.length > 0) {
             updateProgress(30, `Descargando ${codigosFaltantes.length} estadios en paralelo...`);
             
-            // PARALELIZACIÓN CON PROMISE.ALL
             const resultados = await Promise.all(
               codigosFaltantes.map(async (cod) => {
                 const nombreEq = campoPorEquipo.get(cod);
@@ -513,6 +577,7 @@
       window.currentFav = fav;
 
       document.getElementById('view-main').style.display = 'none';
+      document.getElementById('view-match-detail').style.display = 'none';
       document.getElementById('view-league').style.display = 'block';
 
       document.getElementById('league-team-title').innerText = fav.nombreEquipo;
@@ -534,7 +599,6 @@
       }
     }
 
-    // PARSER Y CÁLCULO DE JORNADA PRÓXIMA / FUTURA
     function parseFechaISO(fechaStr) {
       if (!fechaStr || typeof fechaStr !== 'string') return null;
       const partes = fechaStr.includes('/') ? fechaStr.split('/') : fechaStr.split('-');
@@ -542,12 +606,10 @@
 
       let dia, mes, anio;
       if (partes[0].length === 4) {
-        // Formato YYYY-MM-DD
         anio = parseInt(partes[0], 10);
         mes = parseInt(partes[1], 10) - 1;
         dia = parseInt(partes[2], 10);
       } else {
-        // Formato DD/MM/YYYY
         dia = parseInt(partes[0], 10);
         mes = parseInt(partes[1], 10) - 1;
         anio = parseInt(partes[2], 10);
@@ -567,7 +629,7 @@
       const myCode = String(window.currentFav?.equipo || '');
       
       const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0); // Normalizar a medianoche
+      hoy.setHours(0, 0, 0, 0);
 
       let primeraJornadaFutura = null;
       let ultimaJornadaPasada = 1;
@@ -590,9 +652,8 @@
             fechaPartido.setHours(0, 0, 0, 0);
 
             if (fechaPartido >= hoy) {
-              // Encontrada la primera jornada que se juega HOY o en el FUTURO
               primeraJornadaFutura = numJornada;
-              break; // Al estar ordenado, la primera superior/igual es la correcta
+              break;
             } else {
               ultimaJornadaPasada = numJornada;
             }
@@ -600,13 +661,13 @@
         }
       }
 
-      // Si no hay jornadas futuras (fin de liga), se abre la última jornada jugada
       return primeraJornadaFutura !== null ? primeraJornadaFutura : ultimaJornadaPasada;
     }
 
     function showLeagueTab(tabName) {
       if (tabName === 'home') {
         document.getElementById('view-league').style.display = 'none';
+        document.getElementById('view-match-detail').style.display = 'none';
         document.getElementById('view-main').style.display = 'block';
         return;
       }
@@ -671,15 +732,16 @@
         const hora = m.hora || '';
         const campo = m.campo || '';
         const codCampo = m.codigo_campo || m.cod_campo || '';
+        const codActa = m.codacta || m.codigo_acta || m.id_acta || '';
 
         let campoHtml = '';
         if (campo) {
           const mapsUrl = getEstadioUrlSync(codCampo);
           if (mapsUrl) {
-            campoHtml = `<a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="map-link">📍 ${campo}</a>`;
+            campoHtml = `<a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="map-link" onclick="event.stopPropagation();">📍 ${campo}</a>`;
           } else {
             const fallbackMaps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(campo + ' Madrid')}`;
-            campoHtml = `<a href="${fallbackMaps}" target="_blank" rel="noopener noreferrer" class="map-link">📍 ${campo}</a>`;
+            campoHtml = `<a href="${fallbackMaps}" target="_blank" rel="noopener noreferrer" class="map-link" onclick="event.stopPropagation();">📍 ${campo}</a>`;
           }
         }
 
@@ -688,7 +750,7 @@
                           visitante.toLowerCase().includes(window.currentFav?.nombreEquipo.toLowerCase());
 
         container.innerHTML += `
-          <div class="match-card ${isMyMatch ? 'highlight' : ''}">
+          <div class="match-card ${isMyMatch ? 'highlight' : ''}" onclick="openMatchDetail('${codActa}')" style="cursor:pointer;">
             <div class="match-header">
               <span>${fecha} ${hora ? ' - ' + hora : ''}</span>
               ${campoHtml ? '<br>' + campoHtml : ''}
@@ -774,6 +836,194 @@
             <td>${pe}</td>
             <td>${pp}</td>
           </tr>
+        `;
+      });
+    }
+
+    // --- LÓGICA DE DETALLE DEL PARTIDO SELECCIONADO ---
+    async function openMatchDetail(codActa) {
+      if (!codActa) {
+        alert("Este partido aún no dispone de acta oficial o detalles.");
+        return;
+      }
+
+      showModal();
+      updateProgress(40, "Descargando acta de la RFFM...");
+
+      try {
+        const gameData = await apiFetch('partido-detalle', { acta: codActa });
+        
+        updateProgress(100, "¡Cargado con éxito!");
+        await new Promise(r => setTimeout(r, 200));
+        hideModal();
+
+        renderMatchDetailView(gameData);
+
+        document.getElementById('view-league').style.display = 'none';
+        document.getElementById('view-match-detail').style.display = 'block';
+        showMatchSubTab('lineups');
+
+      } catch (err) {
+        hideModal();
+        alert(`No se pudieron obtener los detalles del partido: ${err.message}`);
+      }
+    }
+
+    function closeMatchDetail() {
+      document.getElementById('view-match-detail').style.display = 'none';
+      document.getElementById('view-league').style.display = 'block';
+    }
+
+    function showMatchSubTab(tabName) {
+      document.querySelectorAll('#view-match-detail .tabs .tab-btn').forEach((btn, index) => {
+        if (index > 0) btn.classList.remove('active');
+      });
+
+      document.getElementById('match-tab-lineups').style.display = 'none';
+      document.getElementById('match-tab-events').style.display = 'none';
+      document.getElementById('match-tab-info').style.display = 'none';
+
+      const buttons = document.querySelectorAll('#view-match-detail .tabs .tab-btn');
+
+      if (tabName === 'lineups') {
+        if (buttons[1]) buttons[1].classList.add('active');
+        document.getElementById('match-tab-lineups').style.display = 'block';
+      } else if (tabName === 'events') {
+        if (buttons[2]) buttons[2].classList.add('active');
+        document.getElementById('match-tab-events').style.display = 'block';
+      } else if (tabName === 'info') {
+        if (buttons[3]) buttons[3].classList.add('active');
+        document.getElementById('match-tab-info').style.display = 'block';
+      }
+    }
+
+    function renderMatchDetailView(data) {
+      // Cabecera
+      document.getElementById('match-detail-comp').innerText = `${data.nombre_competicion || ''} - Grupo ${data.nombre_grupo || ''} (Jornada ${data.jornada || ''})`;
+      document.getElementById('match-detail-name-local').innerText = data.equipo_local || 'Local';
+      document.getElementById('match-detail-name-visita').innerText = data.equipo_visitante || 'Visitante';
+      document.getElementById('match-detail-score').innerText = `${data.goles_local ?? 0} - ${data.goles_visitante ?? 0}`;
+      document.getElementById('match-detail-venue').innerText = `📍 ${data.campo || ''} | 📅 ${data.fecha || ''} ${data.hora ? '- ' + data.hora + ' hs' : ''}`;
+
+      // Escudos
+      const imgLocal = document.getElementById('match-detail-logo-local');
+      const imgVisita = document.getElementById('match-detail-logo-visita');
+      if (data.escudo_local) { imgLocal.src = data.escudo_local; imgLocal.style.display = 'block'; } else { imgLocal.style.display = 'none'; }
+      if (data.escudo_visita || data.escudo_visitante) { imgVisita.src = data.escudo_visita || data.escudo_visitante; imgVisita.style.display = 'block'; } else { imgVisita.style.display = 'none'; }
+
+      // Alineaciones
+      document.getElementById('match-title-local').innerText = `${data.equipo_local} (${data.esquema_local || 'S/E'})`;
+      renderMatchPlayerGroup(data.jugadores_equipo_local, 'match-list-local-titulares', 'match-list-local-suplentes');
+
+      document.getElementById('match-title-visita').innerText = `${data.equipo_visitante} (${data.esquema_visitante || 'S/E'})`;
+      renderMatchPlayerGroup(data.jugadores_equipo_visitante, 'match-list-visita-titulares', 'match-list-visita-suplentes');
+
+      // Cronología de Eventos
+      renderMatchEvents(data);
+
+      // Ficha Técnica y Árbitros
+      const listArb = document.getElementById('match-list-arbitros');
+      listArb.innerHTML = '';
+      if (Array.isArray(data.arbitros_partido) && data.arbitros_partido.length > 0) {
+        data.arbitros_partido.forEach(arb => {
+          listArb.innerHTML += `<li style="padding:4px 0; font-size:0.85rem;"><strong>${arb.tipo_arbitro}:</strong> ${arb.nombre_arbitro}</li>`;
+        });
+      } else {
+        listArb.innerHTML = '<li style="font-size:0.85rem; color:var(--text-muted);">Sin información de árbitros</li>';
+      }
+
+      document.getElementById('match-coach-local').innerText = data.entrenador_local?.nombre_entrenador || 'No registrado';
+      document.getElementById('match-coach-visita').innerText = data.entrenador_visitante?.nombre_entrenador || 'No registrado';
+    }
+
+    function renderMatchPlayerGroup(playersArray, titularesId, suplentesId) {
+      const elTit = document.getElementById(titularesId);
+      const elSup = document.getElementById(suplentesId);
+      elTit.innerHTML = '';
+      elSup.innerHTML = '';
+
+      if (!playersArray || playersArray.length === 0) {
+        elTit.innerHTML = '<li style="font-size:0.85rem; color:var(--text-muted); padding:4px 0;">No hay alineación registrada.</li>';
+        return;
+      }
+
+      playersArray.forEach(p => {
+        const itemHtml = createMatchPlayerRow(p);
+        if (p.titular == 1 || p.titular === true || p.suplente == 0) {
+          elTit.innerHTML += itemHtml;
+        } else {
+          elSup.innerHTML += itemHtml;
+        }
+      });
+    }
+
+    function createMatchPlayerRow(p) {
+      const isCaptain = p.capitan == 1 ? '<span style="background:#ffd54f; color:#000; font-size:0.65rem; padding:1px 4px; border-radius:3px; margin-left:4px;">C</span>' : '';
+      const isGK = p.portero == 1 ? '<span style="background:#e0e0e0; font-size:0.65rem; padding:1px 4px; border-radius:3px; margin-left:4px;">POR</span>' : '';
+      const pos = p.posicion_jugador_abreviatura ? `<span style="background:#e0e0e0; font-size:0.65rem; padding:1px 4px; border-radius:3px; margin-left:4px;">${p.posicion_jugador_abreviatura}</span>` : '';
+
+      return `
+        <li style="display:flex; align-items:center; padding:6px 0; border-bottom:1px solid #f9f9f9; font-size:0.85rem;">
+          <span style="width:24px; font-weight:bold; color:var(--primary-blue); display:inline-block;">${p.dorsal || '-'}</span>
+          <span style="flex:1;">${p.nombre_jugador || p.nombre} ${isCaptain} ${isGK} ${pos}</span>
+        </li>
+      `;
+    }
+
+    function renderMatchEvents(data) {
+      const listEvents = document.getElementById('match-list-events');
+      listEvents.innerHTML = '';
+      const allEvents = [];
+
+      (data.goles_equipo_local || []).forEach(g => {
+        allEvents.push({ minuto: parseInt(g.minuto) || 0, tipo: '⚽ Gol', esGol: true, equipo: data.equipo_local, esLocal: true, detalle: `${g.nombre_jugador || 'Jugador'}` });
+      });
+      (data.goles_equipo_visitante || []).forEach(g => {
+        allEvents.push({ minuto: parseInt(g.minuto) || 0, tipo: '⚽ Gol', esGol: true, equipo: data.equipo_visitante, esLocal: false, detalle: `${g.nombre_jugador || 'Jugador'}` });
+      });
+
+      (data.tarjetas_equipo_local || []).forEach(t => {
+        allEvents.push({ minuto: parseInt(t.minuto) || 0, tipo: '🟨 Tarjeta', esGol: false, equipo: data.equipo_local, esLocal: true, detalle: `${t.nombre_jugador || 'Jugador'}` });
+      });
+      (data.tarjetas_equipo_visitante || []).forEach(t => {
+        allEvents.push({ minuto: parseInt(t.minuto) || 0, tipo: '🟨 Tarjeta', esGol: false, equipo: data.equipo_visitante, esLocal: false, detalle: `${t.nombre_jugador || 'Jugador'}` });
+      });
+
+      (data.sustituciones_equipo_local || []).forEach(s => {
+        allEvents.push({ minuto: parseInt(s.minuto) || 0, tipo: '🔄 Cambio', esGol: false, equipo: data.equipo_local, esLocal: true, detalle: `Entra: ${s.nombre_jugador_entra} / Sale: ${s.nombre_jugador_sale}` });
+      });
+      (data.sustituciones_equipo_visitante || []).forEach(s => {
+        allEvents.push({ minuto: parseInt(s.minuto) || 0, tipo: '🔄 Cambio', esGol: false, equipo: data.equipo_visitante, esLocal: false, detalle: `Entra: ${s.nombre_jugador_entra} / Sale: ${s.nombre_jugador_sale}` });
+      });
+
+      allEvents.sort((a, b) => a.minuto - b.minuto);
+
+      if (allEvents.length === 0) {
+        listEvents.innerHTML = '<li style="font-size:0.85rem; color:var(--text-muted); padding:10px 0;">No hay eventos registrados en este partido.</li>';
+        return;
+      }
+
+      let gLocalTemp = 0;
+      let gVisitanteTemp = 0;
+
+      allEvents.forEach(e => {
+        let scoreTag = '';
+        if (e.esGol) {
+          if (e.esLocal) gLocalTemp++;
+          else gVisitanteTemp++;
+          scoreTag = `<strong style="color:var(--primary-blue); background:#e3f2fd; padding:1px 6px; border-radius:4px; margin-left:4px;">[ ${gLocalTemp} - ${gVisitanteTemp} ]</strong>`;
+        }
+
+        const tagEquipo = e.esLocal ? '<span style="font-size:0.7rem; background:#e3f2fd; color:#0d47a1; padding:1px 4px; border-radius:3px;">Local</span>' : '<span style="font-size:0.7rem; background:#fbe9e7; color:#c62828; padding:1px 4px; border-radius:3px;">Visita</span>';
+
+        listEvents.innerHTML += `
+          <li style="display:flex; align-items:center; padding:8px 0; border-bottom:1px solid #f0f0f0; font-size:0.85rem;">
+            <span style="width:32px; font-weight:bold; color:var(--primary-blue); font-size:0.8rem;">${e.minuto}'</span>
+            <div style="flex:1;">
+              <strong>${e.tipo}</strong> ${tagEquipo} ${scoreTag}<br>
+              <span style="color:var(--text-muted); font-size:0.8rem;">${e.detalle}</span>
+            </div>
+          </li>
         `;
       });
     }
