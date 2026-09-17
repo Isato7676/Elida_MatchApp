@@ -519,7 +519,8 @@
 
       try {
         const resData = await apiFetch('calendario-next', { temporada, tipojuego, competicion, grupo });
-        window.leagueData = resData?.pageProps || resData || {};
+        const pageProps = resData?.props?.pageProps || resData?.pageProps || resData || {};
+        window.leagueData = pageProps;
         
         const teamMap = new Map();
 
@@ -590,7 +591,9 @@
           competicion: fav.competicion,
           grupo: fav.grupo
         });
-        window.leagueData = resData?.pageProps || resData || {};
+
+        const pageProps = resData?.props?.pageProps || resData?.pageProps || resData || {};
+        window.leagueData = pageProps;
 
         window.currentJornada = calcularJornadaActual();
         showLeagueTab('calendar');
