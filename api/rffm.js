@@ -198,58 +198,71 @@ module.exports = async (req, res) => {
       });
     }
 
+
     // 4. RUTAS ESTÁNDAR DE LA RFFM (CALENDARIOS Y APIS DIRECTAS)
-    const queryString = new URLSearchParams(queryParams).toString();
-
-    if (endpoint === 'calendario-next') {
-      // Petición dinámica a la página pública del calendario (evita depender de hashes de Next.js que expiran)
-      const targetUrl = `https://www.rffm.es/competicion/calendario?${queryString}`;
-
-      const responseCal = await fetch(targetUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Referer': 'https://www.rffm.es/'
+        if (endpoint === 'calendario-next') {
+          // Mapeamos los parámetros para incluir los nombres que exige la RFFM (id_grupo, id_competicion, id_temporada)
+          const params = new URLSearchParams(queryParams);
+          
+          if (queryParams.grupo && !params.has('id_grupo')) {
+            params.append('id_grupo', queryParams.grupo);
+          }
+          if (queryParams.competicion && !params.has('id_competicion')) {
+            params.append('id_competicion', queryParams.competicion);
+          }
+          if (queryParams.temporada && !params.has('id_temporada')) {
+            params.append('id_temporada', queryParams.temporada);
+          }
+    
+          // Petición dinámica a la página pública del calendario con los parámetros adaptados
+          const targetUrl = `https://www.rffm.es/competicion/calendario?${params.toString()}`;
+    
+          const responseCal = await fetch(targetUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              'Referer': 'https://www.rffm.es/'
+            }
+          });
+    
+          if (!responseCal.ok) {
+            return res.status(responseCal.status).json({ error: `Error en RFFM: ${responseCal.statusText}` });
+          }
+    
+          const html = await responseCal.text();
+          const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/i);
+    
+          if (!nextDataMatch || !nextDataMatch[1]) {
+            return res.status(404).json({ error: 'No se encontró __NEXT_DATA__ en el calendario de la RFFM' });
+          }
+    
+          const nextData = JSON.parse(nextDataMatch[1]);
+          return res.status(200).json(nextData);
+    
+        } else {
+          // Rutas API estándar (temporadas, competiciones, grupos, etc.)
+          const queryString = new URLSearchParams(queryParams).toString();
+          const targetUrl = `https://www.rffm.es/api/${endpoint}${queryString ? `?${queryString}` : ''}`;
+    
+          const response = await fetch(targetUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              'Accept': 'application/json, text/plain, */*',
+              'Referer': 'https://www.rffm.es/'
+            }
+          });
+    
+          if (!response.ok) {
+            return res.status(response.status).json({ error: `Error en RFFM: ${response.statusText}` });
+          }
+    
+          const data = await response.json();
+          return res.status(200).json(data);
         }
-      });
-
-      if (!responseCal.ok) {
-        return res.status(responseCal.status).json({ error: `Error en RFFM: ${responseCal.statusText}` });
+    
+      } catch (error) {
+        return res.status(500).json({ 
+          error: 'Error interno en la función de Vercel', 
+          details: error.message 
+        });
       }
-
-      const html = await responseCal.text();
-      const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/i);
-
-      if (!nextDataMatch || !nextDataMatch[1]) {
-        return res.status(404).json({ error: 'No se encontró __NEXT_DATA__ en el calendario de la RFFM' });
-      }
-
-      const nextData = JSON.parse(nextDataMatch[1]);
-      return res.status(200).json(nextData);
-
-    } else {
-      // Rutas API estándar (temporadas, competiciones, grupos, etc.)
-      const targetUrl = `https://www.rffm.es/api/${endpoint}${queryString ? `?${queryString}` : ''}`;
-
-      const response = await fetch(targetUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'application/json, text/plain, */*',
-          'Referer': 'https://www.rffm.es/'
-        }
-      });
-
-      if (!response.ok) {
-        return res.status(response.status).json({ error: `Error en RFFM: ${response.statusText}` });
-      }
-
-      const data = await response.json();
-      return res.status(200).json(data);
-    }
-
-  } catch (error) {
-    return res.status(500).json({ 
-      error: 'Error interno en la función de Vercel', 
-      details: error.message 
-    });
-  }
-};
+    };
